@@ -1,0 +1,25 @@
+<div class="task-card card">
+  <div class="card-section">
+    <h6><%= task_template.title %></h6>
+    <p><%= truncate(task_template.description, length: 120) %></p>
+    
+    <div class="task-metadata">
+      <small>
+        <strong><%= t("decidim.volunteer_scheduler.task_templates.xp_reward", xp: task_template.xp_reward) %></strong> |
+        <%= t("decidim.volunteer_scheduler.task_templates.level_required", level: task_template.level_required) %>
+      </small>
+    </div>
+    
+    <% if can_accept? %>
+      <%= form_with url: accept_task_path, method: :post, local: true do |form| %>
+        <%= form.submit t("decidim.volunteer_scheduler.task_assignments.accept"), 
+                       class: "button small expanded",
+                       confirm: t("decidim.volunteer_scheduler.task_assignments.accept_confirm") %>
+      <% end %>
+    <% else %>
+      <div class="callout warning small">
+        <%= t("decidim.volunteer_scheduler.task_assignments.cannot_accept") %>
+      </div>
+    <% end %>
+  </div>
+</div>

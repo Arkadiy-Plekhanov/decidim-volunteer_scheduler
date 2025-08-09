@@ -1,0 +1,116 @@
+<% add_decidim_page_title(@task_assignment.task_template.title) %>
+
+<div class="row">
+  <div class="large-8 columns">
+    <div class="card">
+      <div class="card-divider">
+        <h2 class="card-title">
+          <%= @task_assignment.task_template.title %>
+        </h2>
+        <span class="label <%= assignment_status_class(@task_assignment) %>">
+          <%= t("decidim.volunteer_scheduler.task_assignments.status.#{@task_assignment.status}") %>
+        </span>
+      </div>
+      <div class="card-section">
+        <div class="task-description">
+          <%= simple_format(@task_assignment.task_template.description) %>
+        </div>
+        
+        <div class="task-metadata">
+          <p><strong><%= t(".xp_reward") %>:</strong> <%= @task_assignment.task_template.xp_reward %> XP</p>
+          <p><strong><%= t(".level_required") %>:</strong> Level <%= @task_assignment.task_template.level_required %></p>
+          <p><strong><%= t(".category") %>:</strong> <%= @task_assignment.task_template.category %></p>
+          <p><strong><%= t(".assigned_at") %>:</strong> <%= l(@task_assignment.assigned_at, format: :long) %></p>
+          <% if @task_assignment.due_date %>
+            <p><strong><%= t(".due_date") %>:</strong> 
+              <%= l(@task_assignment.due_date, format: :long) %>
+              <% if @task_assignment.overdue? %>
+                <span class="label alert"><%= t(".overdue") %></span>
+              <% end %>
+            </p>
+          <% end %>
+        </div>
+        
+        <% if @task_assignment.submitted_at %>
+          <div class="callout primary">
+            <h6><%= t(".submitted_at") %></h6>
+            <p><%= l(@task_assignment.submitted_at, format: :long) %></p>
+            <% if @task_assignment.submission_notes.present? %>
+              <p><strong><%= t(".submission_notes") %>:</strong></p>
+              <p><%= simple_format(@task_assignment.submission_notes) %></p>
+            <% end %>
+          </div>
+        <% end %>
+        
+        <% if @task_assignment.reviewed_at %>
+          <div class="callout <%= @task_assignment.approved? ? 'success' : 'alert' %>">
+            <h6><%= t(".review_result") %></h6>
+            <p><strong><%= t(".reviewed_at") %>:</strong> <%= l(@task_assignment.reviewed_at, format: :long) %></p>
+            <% if @task_assignment.reviewer %>
+              <p><strong><%= t(".reviewer") %>:</strong> <%= @task_assignment.reviewer.name %></p>
+            <% end %>
+            <% if @task_assignment.review_notes.present? %>
+              <p><strong><%= t(".review_notes") %>:</strong></p>
+              <p><%= simple_format(@task_assignment.review_notes) %></p>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  
+  <div class="large-4 columns">
+    <div class="card">
+      <div class="card-divider">
+        <h3 class="card-title">
+          <%= t(".actions") %>
+        </h3>
+      </div>
+      <div class="card-section">
+        <% if @task_assignment.can_be_submitted? %>
+          <%= form_with url: task_assignment_path(@task_assignment), method: :patch, local: true do |form| %>
+            <%= form.hidden_field :action_type, value: "submit" %>
+            
+            <div class="field">
+              <%= form.label :submission_notes, t(".submission_notes") %>
+              <%= form.text_area :submission_notes, rows: 5, placeholder: t(".submission_notes_placeholder") %>
+            </div>
+            
+            <div class="actions">
+              <%= form.submit t(".submit_work"), class: "button success expanded" %>
+            </div>
+          <% end %>
+        <% elsif @task_assignment.pending? %>
+          <div class="callout warning">
+            <%= t(".cannot_submit_yet") %>
+          </div>
+        <% elsif @task_assignment.submitted? %>
+          <div class="callout primary">
+            <%= t(".awaiting_review") %>
+          </div>
+        <% elsif @task_assignment.approved? %>
+          <div class="callout success">
+            <%= t(".task_approved") %>
+            <p><strong><%= t(".xp_earned") %>:</strong> <%= @task_assignment.task_template.xp_reward %> XP</p>
+          </div>
+        <% elsif @task_assignment.rejected? %>
+          <div class="callout alert">
+            <%= t(".task_rejected") %>
+          </div>
+          
+          <% if @task_assignment.task_template.can_be_assigned_to?(current_volunteer_profile) %>
+            <%= link_to t(".retry_task"), 
+                       task_assignments_path(task_template_id: @task_assignment.task_template.id), 
+                       method: :post, 
+                       class: "button hollow expanded" %>
+          <% end %>
+        <% end %>
+        
+        <div class="actions">
+          <%= link_to t(".back_to_assignments"), task_assignments_path, class: "button hollow expanded" %>
+          <%= link_to t(".back_to_dashboard"), my_dashboard_path, class: "button hollow expanded" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

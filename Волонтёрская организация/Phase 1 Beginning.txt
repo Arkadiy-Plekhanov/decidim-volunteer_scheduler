@@ -1,0 +1,139 @@
+I’ll now begin generating the complete code for the **Phase 1 `volunteer_scheduler` module**, structured according to the official Decidim component standards.
+
+The implementation will include:
+
+1. **Rails Engine Structure** (`decidim-volunteer_scheduler`)
+2. **Core Models & Migrations**
+
+   * `VolunteerProfile`
+   * `TaskTemplate`
+   * `TaskAssignment`
+3. **Component Registration**
+
+   * Settings
+   * Admin integration
+4. **Controllers & Routes**
+
+   * Public Dashboard (`TasksController`)
+   * Admin Panel (`Admin::TasksController`, `Admin::AssignmentsController`)
+5. **Basic Views**
+
+   * Task cards, dashboard summary, referral tree
+6. **Follow-up Integration** for task reporting
+7. **Level and XP Logic**
+8. **Referral Logic (5-level tree)**
+9. **Notifications (Native Decidim only)**
+
+I’ll deliver the code to you in sequential chunks to preserve clarity and structure. Let’s begin with the **engine scaffold and migrations**.
+
+
+It looks like I hit a temporary issue creating the file structure. Don’t worry — I’ll now generate the **first part of the actual code manually**: the **component engine, model skeletons, and migrations**. This will represent what a clean Phase 1 `volunteer_scheduler` module would look like inside a Decidim app.
+
+---
+
+## 📦 Step 1: Component Generator Output
+
+### ✅ `lib/decidim/volunteer_scheduler/engine.rb`
+
+```ruby
+# frozen_string_literal: true
+
+module Decidim
+  module VolunteerScheduler
+    class Engine < ::Rails::Engine
+      isolate_namespace Decidim::VolunteerScheduler
+      engine_name "decidim_volunteer_scheduler"
+
+      initializer "decidim_volunteer_scheduler.assets" do |app|
+        app.config.assets.precompile += %w(
+          decidim/volunteer_scheduler/application.js
+          decidim/volunteer_scheduler/application.css
+        )
+      end
+
+      initializer "decidim_volunteer_scheduler.i18n" do |app|
+        app.config.i18n.load_path += Dir[root.join("config", "locales", "**", "*.{rb,yml}").to_s]
+      end
+    end
+  end
+end
+```
+
+---
+
+### ✅ `lib/decidim_volunteer_scheduler.rb`
+
+```ruby
+# frozen_string_literal: true
+
+require "decidim"
+require "decidim/volunteer_scheduler/engine"
+
+module Decidim
+  module VolunteerScheduler
+  end
+end
+```
+
+---
+
+## 📁 Step 2: Migrations
+
+### ✅ `db/migrate/001_create_volunteer_profiles.rb`
+
+```ruby
+class CreateVolunteerProfiles < ActiveRecord::Migration[6.1]
+  def change
+    create_table :decidim_volunteer_scheduler_volunteer_profiles do |t|
+      t.references :user, null: false, foreign_key: { to_table: :decidim_users }
+      t.integer :xp_total, default: 0
+      t.integer :level, default: 1
+      t.float :activity_multiplier, default: 1.0
+      t.references :referrer, foreign_key: { to_table: :decidim_users }
+      t.timestamps
+    end
+  end
+end
+```
+
+---
+
+### ✅ `002_create_task_templates.rb`
+
+```ruby
+class CreateTaskTemplates < ActiveRecord::Migration[6.1]
+  def change
+    create_table :decidim_volunteer_scheduler_task_templates do |t|
+      t.string :title
+      t.text :description
+      t.integer :level_required, default: 1
+      t.integer :xp_award
+      t.string :category
+      t.string :frequency, default: "daily" # daily or weekly
+      t.boolean :active, default: true
+      t.timestamps
+    end
+  end
+end
+```
+
+---
+
+### ✅ `003_create_task_assignments.rb`
+
+```ruby
+class CreateTaskAssignments < ActiveRecord::Migration[6.1]
+  def change
+    create_table :decidim_volunteer_scheduler_task_assignments do |t|
+      t.references :user, null: false, foreign_key: { to_table: :decidim_users }
+      t.references :task_template, null: false
+      t.string :status, default: "pending" # pending, submitted, approved, rejected
+      t.datetime :submitted_at
+      t.integer :followup_id
+      t.references :reviewed_by, foreign_key: { to_table: :decidim_users }
+      t.text :review_comment
+      t.timestamps
+    end
+  end
+end
+```

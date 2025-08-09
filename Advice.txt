@@ -1,0 +1,54 @@
+Based on your priorities, I'll provide a focused implementation guide for the follow-up system with organization-level task templates, following Decidim's best practices.Perfect! Based on your priorities, here's the key implementation strategy:
+
+## 1. **Follow-up System Integration (TOP PRIORITY)**
+
+The follow-up system is the BEST choice for task submissions because:
+- **Already built into Decidim** - no custom submission system needed
+- **Provides complete workflow**: submission → review → approval
+- **Native admin interface** for reviewing submissions
+- **Automatic notifications** and audit trail
+- **Used successfully** in decidim-accountability for milestone tracking
+
+**Implementation**: Your `TaskAssignment` model should include `Decidim::Followable` and use `Decidim::FollowUp` records for submissions. This gives you the entire submission infrastructure for free.
+
+## 2. **Organization-Level Task Templates**
+
+This is the correct architecture because:
+- **One template, many uses** - create once, use across all participatory processes
+- **Centralized management** - admins manage templates in one place
+- **Reduces duplication** - same volunteer tasks across different spaces
+- **Follows Decidim patterns** - similar to how Decidim handles users and admins at org level
+
+**Implementation**: Templates belong to `decidim_organization`, not `decidim_component`. Components only reference templates when creating assignments.
+
+## 3. **Separate VolunteerProfile Model (BEST PRACTICE)**
+
+After analyzing Decidim's codebase, creating a **separate VolunteerProfile model** is definitively better than extending User because:
+
+- **Clean boundaries** - Your module's data stays in your module's tables
+- **No core hacks** - Never modify Decidim::User directly
+- **Component scoping** - Track participation per component/process
+- **Easy uninstall** - Can remove module without affecting users
+- **Follows Decidim patterns** - Similar to how decidim-proposals has Proposal authors, decidim-meetings has Registrations
+
+**Implementation pattern**:
+```ruby
+# Your model
+class VolunteerProfile < ApplicationRecord
+  belongs_to :user, class_name: "Decidim::User"
+  belongs_to :organization
+  belongs_to :component, optional: true # for scoped participation
+end
+
+# Light concern for convenience methods only
+module UserExtensions
+  extend ActiveSupport::Concern
+  included do
+    has_one :volunteer_profile
+  end
+end
+```
+
+This gives you the best of both worlds - clean separation with convenient access patterns.
+
+Would you like me to create the specific migration files and model implementations for these three priorities?

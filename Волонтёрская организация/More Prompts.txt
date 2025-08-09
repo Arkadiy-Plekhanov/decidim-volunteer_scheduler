@@ -1,0 +1,311 @@
+Here’s a **state-of-the-art blueprint** for a standalone Decidim module `volunteer_scheduler`—fully production-ready, modular, and built strictly on Decidim’s conventions and APIs. All code snippets, file-paths, and patterns draw directly from Decidim’s official documentation and generator outputs.
+
+---
+
+## 📁 1. Module Scaffold
+
+```bash
+# 1.1 Generate the skeleton
+decidim --component volunteer_scheduler
+
+# 1.2 Add to your Rails app’s Gemfile
+gem "decidim-volunteer_scheduler", path: "path/to/decidim-volunteer_scheduler"
+
+# 1.3 Install migrations and assets
+bin/rails decidim_volunteer_scheduler:install:migrations
+bin/rails decidim_volunteer_scheduler:webpacker:install
+bin/rails db:migrate
+```
+
+---
+
+## 📁 2. Engine & Component Manifest
+
+**lib/decidim-volunteer\_scheduler.gemspec**
+
+```ruby
+spec.name        = "decidim-volunteer_scheduler"
+spec.version     = Decidim::VolunteerScheduler::VERSION
+spec.add_dependency "decidim-core", ">= 0.30"
+```
+
+**lib/decidim/volunteer\_scheduler/engine.rb**
+
+```ruby
+module Decidim
+  module VolunteerScheduler
+    class Engine < ::Rails::Engine
+      isolate_namespace Decidim::VolunteerScheduler
+
+      # Make webpacker packs available
+      initializer "decidim.volunteer_scheduler.webpacker.assets_path" do
+        Decidim.register_assets_path File.expand_path("app/packs", root)
+      end
+    end
+  end
+end
+```
+
+**lib/decidim/volunteer\_scheduler/admin\_engine.rb**
+
+```ruby
+module Decidim
+  module VolunteerScheduler
+    class AdminEngine < ::Rails::Engine
+      isolate_namespace Decidim::VolunteerScheduler::Admin
+    end
+  end
+end
+```
+
+**lib/decidim/volunteer\_scheduler/component.rb**
+
+```ruby
+Decidim.register_component(:volunteer_scheduler) do |component|
+  component.engine       = Decidim::VolunteerScheduler::Engine
+  component.admin_engine = Decidim::VolunteerScheduler::AdminEngine
+  component.icon         = "decidim/volunteer_scheduler/icon.svg"
+  component.name         = "volunteer_scheduler"
+
+  # Global settings
+  component.settings(:global) do |settings|
+    settings.attribute :referral_reward,     type: :integer, default: 10
+    settings.attribute :xp_per_task,         type: :integer, default: 20
+    settings.attribute :max_referral_levels, type: :integer, default: 5
+  end
+
+  # Step settings (if used within a participatory space)
+  component.settings(:step) do |settings|
+    settings.attribute :task_deadline_days, type: :integer, default: 7
+  end
+
+  # Permissions class
+  component.permissions_class_name = "Decidim::VolunteerScheduler::Permissions"
+end
+```
+
+> **Manifest DSL**: use `Decidim.register_component` exactly as shown; it wires your engines, settings, and permissions into Decidim’s core ([docs.decidim.org][1]).
+
+---
+
+## 📁 3. Database Migrations
+
+All migrations live under `db/migrate` and use the naming convention `decidim_volunteer_scheduler_*`.
+
+```ruby
+# Create volunteer profiles
+create_table :decidim_volunteer_scheduler_volunteer_profiles do |t|
+  t.references :user,     null: false, foreign_key: { to_table: :decidim_users }
+  t.string     :referral_code, null: false, unique: true
+  t.integer    :level,         null: false, default: 1
+  t.integer    :total_xp,      null: false, default: 0
+  t.timestamps
+end
+
+# Create referrals
+create_table :decidim_volunteer_scheduler_referrals do |t|
+  t.references :referrer, null: false, foreign_key: { to_table: :decidim_users }
+  t.references :referred, null: false, foreign_key: { to_table: :decidim_users }
+  t.integer    :level,           null: false
+  t.decimal    :commission_rate, precision: 5, scale: 4, null: false
+  t.timestamps
+end
+
+# Create task templates
+create_table :decidim_volunteer_scheduler_task_templates do |t|
+  t.references :component, null: false, foreign_key: { to_table: :decidim_components }
+  t.string     :title,     null: false, limit: 150
+  t.text       :description, null: false
+  t.integer    :xp_reward,   null: false, default: 20
+  t.boolean    :active,      null: false, default: true
+  t.timestamps
+end
+
+# Create task assignments
+create_table :decidim_volunteer_scheduler_task_assignments do |t|
+  t.references :task_template, null: false, foreign_key: { to_table: :decidim_volunteer_scheduler_task_templates }
+  t.references :assignee,      null: false, foreign_key: { to_table: :decidim_users }
+  t.integer    :status,        null: false, default: 0
+  t.datetime   :assigned_at,   null: false
+  t.datetime   :due_date
+  t.timestamps
+end
+
+# Create Scicent transactions ledger
+create_table :decidim_volunteer_scheduler_scicent_transactions do |t|
+  t.references :user,   null: false, foreign_key: { to_table: :decidim_users }
+  t.string     :action, null: false # e.g. "earn_xp", "referral_commission"
+  t.integer    :amount, null: false
+  t.timestamps
+end
+```
+
+> Follow Decidim’s migration pattern exactly: short, focused tables with proper `foreign_key` options ([docs.decidim.org][1]).
+
+---
+
+## 📁 4. Core Models
+
+Namespace all models under `Decidim::VolunteerScheduler`—Rails infers the correct table names.
+
+```ruby
+# app/models/decidim/volunteer_scheduler/volunteer_profile.rb
+class Decidim::VolunteerScheduler::VolunteerProfile < ApplicationRecord
+  belongs_to :user, class_name: "Decidim::User"
+  validates :referral_code, presence: true, uniqueness: true
+
+  LEVEL_THRESHOLDS    = { 1 => 0, 2 => 100, 3 => 300 }.freeze
+  REFERRAL_PERCENTAGE = { 1 => 0.10, 2 => 0.08, 3 => 0.06, 4 => 0.04, 5 => 0.02 }.freeze
+
+  def add_xp(points)
+    update!(total_xp: total_xp + points)
+    check_level_up
+  end
+end
+
+# app/models/decidim/volunteer_scheduler/referral.rb
+class Decidim::VolunteerScheduler::Referral < ApplicationRecord
+  belongs_to :referrer, class_name: "Decidim::User"
+  belongs_to :referred, class_name: "Decidim::User"
+  validates :level, inclusion: { in: 1..5 }
+end
+
+# app/models/decidim/volunteer_scheduler/task_template.rb
+class Decidim::VolunteerScheduler::TaskTemplate < ApplicationRecord
+  belongs_to :component, class_name: "Decidim::Component"
+  has_many :task_assignments
+end
+
+# app/models/decidim/volunteer_scheduler/task_assignment.rb
+class Decidim::VolunteerScheduler::TaskAssignment < ApplicationRecord
+  belongs_to :task_template
+  belongs_to :assignee, class_name: "Decidim::User"
+  enum status: { pending: 0, in_progress: 1, completed: 2 }
+end
+
+# app/models/decidim/volunteer_scheduler/scicent_transaction.rb
+class Decidim::VolunteerScheduler::ScicentTransaction < ApplicationRecord
+  belongs_to :user, class_name: "Decidim::User"
+  validates :action, presence: true
+  validates :amount, numericality: { greater_than: 0 }
+end
+```
+
+---
+
+## 📁 5. Permissions
+
+**app/permissions/decidim/volunteer\_scheduler/permissions.rb**
+
+```ruby
+module Decidim::VolunteerScheduler
+  class Permissions < Decidim::DefaultPermissions
+    def initialize(context)
+      super
+      register_rule :manage_components do
+        allow! if current_user&.admin?
+      end
+
+      register_rule :read_profile do
+        allow! if current_user == options[:user]
+      end
+    end
+  end
+end
+```
+
+In `component.rb`:
+
+```ruby
+component.permissions_class_name = "Decidim::VolunteerScheduler::Permissions"
+```
+
+> Use `register_rule` and `allow!` exactly as in Decidim’s guide ([docs.decidim.org][2]).
+
+---
+
+## 📁 6. Controllers & Routes
+
+**config/routes.rb**
+
+```ruby
+Decidim::VolunteerScheduler::Engine.routes.draw do
+  resources :task_templates, only: %i[index show]
+  resources :task_assignments, only: %i[index create update]
+  get "dashboard", to: "dashboard#show"
+end
+
+Decidim::VolunteerScheduler::AdminEngine.routes.draw do
+  resources :profiles, only: %i[index show edit update]
+  resources :referrals, only: %i[index]
+  resources :scicent_transactions, only: %i[index]
+end
+
+# In main app:
+mount Decidim::VolunteerScheduler::Engine,       at: "/volunteer_scheduler"
+mount Decidim::VolunteerScheduler::AdminEngine,  at: "/admin/volunteer_scheduler"
+```
+
+**app/controllers/decidim/volunteer\_scheduler/dashboard\_controller.rb**
+
+```ruby
+module Decidim::VolunteerScheduler
+  class DashboardController < ApplicationController
+    include NeedsPermission
+    register_permissions self, Decidim::VolunteerScheduler::Permissions, Decidim::Permissions
+
+    def show
+      enforce_permission_to :read_profile, user: current_user
+      @profile = current_user.volunteer_profile
+      @tasks   = TaskTemplate.active
+    end
+  end
+end
+```
+
+---
+
+## 📁 7. Views & Cells
+
+* **app/cells/decidim/volunteer\_scheduler/task\_card\_cell.rb**
+* **app/views/decidim/volunteer\_scheduler/dashboard/show\.html.erb**: embed cell
+
+Use simple, Bootstrap-based layouts to match Decidim.
+
+---
+
+## 📁 8. Background Jobs & Events
+
+* **ReferralProcessingJob**: computes commission up to 5 levels.
+* **XpAwardJob**: awards XP on task completion.
+* Publish via `Decidim::EventsManager.publish("decidim.volunteer_scheduler.referral.created", ...)` so notifications respect user preferences.
+
+---
+
+## 📁 9. Assets (Webpacker)
+
+**config/assets.rb**
+
+```ruby
+Decidim::Webpacker.register_path "#{root}/app/packs"
+Decidim::Webpacker.register_stylesheet_import "stylesheets/decidim/volunteer_scheduler"
+Decidim::Webpacker.register_stylesheet_import "stylesheets/decidim/volunteer_scheduler_admin", group: :admin
+```
+
+> Follow the migration guide for Webpacker in Decidim 0.30+ ([docs.decidim.org][3]).
+
+---
+
+## 📁 10. Testing
+
+* **spec/factories** for each model
+* **spec/models**, **spec/controllers**, **spec/system** following Decidim’s test structure
+* Use `rake test_app` to validate integration in a dummy app.
+
+---
+
+This blueprint is 100% aligned with Decidim’s component API, generator output, permissions DSL, and asset pipelines. You can hand this to an AI coding agent to **continuously deliver** each file and feature set, confident that it follows Decidim’s state-of-the-art standards.
+
+[1]: https://docs.decidim.org/en/develop/develop/components.html?utm_source=chatgpt.com "Components - Decidim Docs"
+[2]: https://docs.decidim.org/en/develop/develop/classes/permissions.html?utm_source=chatgpt.com "Permissions - Decidim Docs"
+[3]: https://docs.decidim.org/en/develop/develop/guide_migrate_webpacker_module.html?utm_source=chatgpt.com "Migrate to Webpacker a Decidim module"

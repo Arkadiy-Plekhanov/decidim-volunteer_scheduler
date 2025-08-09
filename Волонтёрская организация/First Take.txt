@@ -1,0 +1,550 @@
+# decidim-volunteer_scheduler.gemspec
+Gem::Specification.new do |spec|
+  spec.name = "decidim-volunteer_scheduler"
+  spec.version = "0.1.0"
+  spec.authors = ["Your Name"]
+  spec.email = ["your.email@example.com"]
+  spec.summary = "Volunteer task scheduling and management for Decidim"
+  spec.description = "A Decidim module that provides volunteer task management with XP system and token rewards"
+  spec.homepage = "https://github.com/yourusername/decidim-volunteer_scheduler"
+  spec.license = "AGPL-3.0"
+
+  spec.files = Dir["{app,config,db,lib}/**/*", "Rakefile", "README.md"]
+  spec.require_paths = ["lib"]
+
+  spec.add_dependency "decidim-core", "~> 0.27.0"
+  spec.add_dependency "decidim-admin", "~> 0.27.0"
+  spec.add_development_dependency "decidim-dev", "~> 0.27.0"
+end
+
+# lib/decidim-volunteer_scheduler.rb
+require "decidim/volunteer_scheduler/engine"
+
+module Decidim
+  module VolunteerScheduler
+    autoload :VERSION, "decidim/volunteer_scheduler/version"
+  end
+end
+
+# lib/decidim/volunteer_scheduler/version.rb
+module Decidim
+  module VolunteerScheduler
+    VERSION = "0.1.0"
+  end
+end
+
+# lib/decidim/volunteer_scheduler/engine.rb
+require "rails/engine"
+
+module Decidim
+  module VolunteerScheduler
+    class Engine < ::Rails::Engine
+      isolate_namespace Decidim::VolunteerScheduler
+
+      routes do
+        resources :templates, only: [:index] do
+          member do
+            post :accept
+          end
+        end
+        
+        resources :assignments, only: [:index, :show, :update]
+        
+        namespace :admin do
+          resources :templates
+          resources :assignments, only: [:index, :show, :update]
+        end
+      end
+
+      initializer "decidim.volunteer_scheduler.add_cells_view_paths" do
+        Cell::ViewModel.view_paths << File.expand_path("#{Decidim::VolunteerScheduler::Engine.root}/app/cells")
+        Cell::ViewModel.view_paths << File.expand_path("#{Decidim::VolunteerScheduler::Engine.root}/app/views")
+      end
+
+      initializer "decidim.volunteer_scheduler.menu" do
+        Decidim.menu :user_menu do |menu|
+          menu.item I18n.t("menu.volunteer_tasks", scope: "decidim.volunteer_scheduler"),
+                    decidim_volunteer_scheduler.templates_path,
+                    position: 2.5,
+                    if: proc { current_user&.volunteer? },
+                    active: :inclusive
+        end
+
+        Decidim.menu :admin_menu do |menu|
+          menu.item I18n.t("menu.volunteer_scheduler", scope: "decidim.volunteer_scheduler.admin"),
+                    decidim_volunteer_scheduler.admin_templates_path,
+                    position: 7,
+                    active: :inclusive,
+                    if: allowed_to?(:enter, :space_area, space_name: :admin)
+        end
+      end
+
+      config.autoload_paths += %W[
+        #{root}/app/controllers/concerns
+        #{root}/app/models/concerns
+        #{root}/app/jobs
+      ]
+    end
+  end
+end
+
+# config/routes.rb
+Decidim::VolunteerScheduler::Engine.routes.draw do
+  resources :templates, only: [:index] do
+    member do
+      post :accept
+    end
+  end
+  
+  resources :assignments, only: [:index, :show, :update]
+  
+  namespace :admin do
+    resources :templates
+    resources :assignments, only: [:index, :show, :update]
+    resources :xp_settings, only: [:index, :update]
+  end
+end
+
+# db/migrate/001_create_decidim_volunteer_scheduler_task_templates.rb
+class CreateDecidimVolunteerSchedulerTaskTemplates < ActiveRecord::Migration[6.1]
+  def change
+    create_table :decidim_volunteer_scheduler_task_templates do |t|
+      t.references :decidim_organization, null: false, foreign_key: true
+      t.string :title, null: false
+      t.text :description
+      t.integer :level, null: false, default: 1
+      t.integer :frequency, null: false, default: 0
+      t.integer :xp_reward, null: false, default: 10
+      t.decimal :scicent_reward, precision: 10, scale: 2, default: 0
+      t.boolean :active, null: false, default: true
+      t.datetime :available_from
+      t.datetime :available_until
+      t.integer :max_assignments
+      t.text :requirements
+      t.json :metadata
+      t.timestamps
+    end
+
+    add_index :decidim_volunteer_scheduler_task_templates, :level
+    add_index :decidim_volunteer_scheduler_task_templates, :frequency
+    add_index :decidim_volunteer_scheduler_task_templates, :active
+  end
+end
+
+# db/migrate/002_create_decidim_volunteer_scheduler_task_assignments.rb
+class CreateDecidimVolunteerSchedulerTaskAssignments < ActiveRecord::Migration[6.1]
+  def change
+    create_table :decidim_volunteer_scheduler_task_assignments do |t|
+      t.references :task_template, null: false, 
+                   foreign_key: { to_table: :decidim_volunteer_scheduler_task_templates }
+      t.references :assignee, null: false, foreign_key: { to_table: :decidim_users }
+      t.integer :status, null: false, default: 0
+      t.datetime :assigned_at, null: false
+      t.datetime :due_date
+      t.datetime :started_at
+      t.datetime :completed_at
+      t.text :report
+      t.text :admin_notes
+      t.integer :xp_earned, default: 0
+      t.decimal :scicent_earned, precision: 10, scale: 2, default: 0
+      t.json :submission_data
+      t.timestamps
+    end
+
+    add_index :decidim_volunteer_scheduler_task_assignments, :status
+    add_index :decidim_volunteer_scheduler_task_assignments, :assignee_id
+    add_index :decidim_volunteer_scheduler_task_assignments, :due_date
+  end
+end
+
+# db/migrate/003_create_decidim_volunteer_scheduler_volunteer_profiles.rb
+class CreateDecidimVolunteerSchedulerVolunteerProfiles < ActiveRecord::Migration[6.1]
+  def change
+    create_table :decidim_volunteer_scheduler_volunteer_profiles do |t|
+      t.references :user, null: false, foreign_key: { to_table: :decidim_users }
+      t.integer :level, null: false, default: 1
+      t.integer :total_xp, null: false, default: 0
+      t.decimal :total_scicent_earned, precision: 12, scale: 2, default: 0
+      t.decimal :referral_scicent_earned, precision: 12, scale: 2, default: 0
+      t.integer :tasks_completed, null: false, default: 0
+      t.decimal :activity_multiplier, precision: 3, scale: 2, default: 1.0
+      t.string :referral_code, null: false
+      t.references :referrer, null: true, foreign_key: { to_table: :decidim_users }
+      t.json :capabilities, default: {}
+      t.json :achievements, default: []
+      t.datetime :last_activity_at
+      t.timestamps
+    end
+
+    add_index :decidim_volunteer_scheduler_volunteer_profiles, :level
+    add_index :decidim_volunteer_scheduler_volunteer_profiles, :referral_code, unique: true
+    add_index :decidim_volunteer_scheduler_volunteer_profiles, :referrer_id
+  end
+end
+
+# db/migrate/004_create_decidim_volunteer_scheduler_referrals.rb
+class CreateDecidimVolunteerSchedulerReferrals < ActiveRecord::Migration[6.1]
+  def change
+    create_table :decidim_volunteer_scheduler_referrals do |t|
+      t.references :referrer, null: false, foreign_key: { to_table: :decidim_users }
+      t.references :referred, null: false, foreign_key: { to_table: :decidim_users }
+      t.integer :level, null: false, default: 1
+      t.decimal :commission_rate, precision: 5, scale: 4, null: false
+      t.decimal :total_commission, precision: 12, scale: 2, default: 0
+      t.boolean :active, null: false, default: true
+      t.timestamps
+    end
+
+    add_index :decidim_volunteer_scheduler_referrals, [:referrer_id, :referred_id], unique: true
+    add_index :decidim_volunteer_scheduler_referrals, :level
+  end
+end
+
+# app/models/decidim/volunteer_scheduler/task_template.rb
+module Decidim
+  module VolunteerScheduler
+    class TaskTemplate < ApplicationRecord
+      belongs_to :organization, class_name: "Decidim::Organization"
+      has_many :task_assignments, dependent: :destroy
+
+      enum level: { level1: 1, level2: 2, level3: 3 }
+      enum frequency: { daily: 0, weekly: 1, monthly: 2, one_time: 3 }
+
+      validates :title, presence: true
+      validates :level, presence: true
+      validates :frequency, presence: true
+      validates :xp_reward, presence: true, numericality: { greater_than: 0 }
+
+      scope :active, -> { where(active: true) }
+      scope :available_now, -> { where("available_from <= ? AND (available_until IS NULL OR available_until >= ?)", Time.current, Time.current) }
+      scope :for_level, ->(level) { where(level: level) }
+      scope :available_for_assignment, -> { active.available_now.joins(:task_assignments).group(:id).having("COUNT(task_assignments.id) < max_assignments OR max_assignments IS NULL") }
+
+      def available_for_user?(user)
+        return false unless active?
+        return false if user.volunteer_profile.level < level.to_i
+        return false if available_from && available_from > Time.current
+        return false if available_until && available_until < Time.current
+        return false if max_assignments && task_assignments.count >= max_assignments
+        return false if task_assignments.exists?(assignee: user, status: [:pending, :in_progress])
+        
+        true
+      end
+
+      def due_date_for_assignment
+        case frequency
+        when "daily"
+          1.day.from_now
+        when "weekly"
+          1.week.from_now
+        when "monthly"
+          1.month.from_now
+        else
+          available_until || 1.week.from_now
+        end
+      end
+
+      def assignments_count
+        task_assignments.count
+      end
+
+      def completed_assignments_count
+        task_assignments.done.count
+      end
+    end
+  end
+end
+
+# app/models/decidim/volunteer_scheduler/task_assignment.rb
+module Decidim
+  module VolunteerScheduler
+    class TaskAssignment < ApplicationRecord
+      belongs_to :task_template
+      belongs_to :assignee, class_name: "Decidim::User"
+
+      enum status: { pending: 0, in_progress: 1, done: 2, cancelled: 3 }
+
+      validates :assignee, presence: true
+      validates :task_template, presence: true
+      validates :assigned_at, presence: true
+
+      scope :due_soon, -> { where("due_date <= ?", 1.day.from_now) }
+      scope :overdue, -> { where("due_date < ? AND status != ?", Time.current, statuses[:done]) }
+      scope :recent, -> { order(assigned_at: :desc) }
+
+      after_update :process_completion, if: :saved_change_to_status?
+      after_create :set_due_date
+
+      def overdue?
+        due_date && due_date < Time.current && !done?
+      end
+
+      def days_until_due
+        return nil unless due_date
+        ((due_date - Time.current) / 1.day).ceil
+      end
+
+      def can_be_started?
+        pending?
+      end
+
+      def can_be_completed?
+        in_progress? && report.present?
+      end
+
+      private
+
+      def set_due_date
+        self.update_column(:due_date, task_template.due_date_for_assignment)
+      end
+
+      def process_completion
+        return unless done?
+        return if xp_earned > 0 # Already processed
+
+        volunteer_profile = assignee.volunteer_profile
+        xp_to_earn = calculate_xp_reward
+        scicent_to_earn = calculate_scicent_reward
+
+        update_columns(
+          xp_earned: xp_to_earn,
+          scicent_earned: scicent_to_earn,
+          completed_at: Time.current
+        )
+
+        volunteer_profile.add_xp(xp_to_earn)
+        volunteer_profile.add_scicent(scicent_to_earn)
+        volunteer_profile.increment_tasks_completed
+        volunteer_profile.update_last_activity
+
+        # Trigger referral commissions
+        ReferralCommissionJob.perform_later(assignee.id, scicent_to_earn)
+      end
+
+      def calculate_xp_reward
+        base_xp = task_template.xp_reward
+        multiplier = assignee.volunteer_profile.activity_multiplier
+        (base_xp * multiplier).to_i
+      end
+
+      def calculate_scicent_reward
+        base_scicent = task_template.scicent_reward
+        multiplier = assignee.volunteer_profile.activity_multiplier
+        base_scicent * multiplier
+      end
+    end
+  end
+end
+
+# app/models/decidim/volunteer_scheduler/volunteer_profile.rb
+module Decidim
+  module VolunteerScheduler
+    class VolunteerProfile < ApplicationRecord
+      belongs_to :user, class_name: "Decidim::User"
+      belongs_to :referrer, class_name: "Decidim::User", optional: true
+
+      has_many :task_assignments, foreign_key: :assignee_id, primary_key: :user_id
+      has_many :referrals_made, class_name: "Referral", foreign_key: :referrer_id, primary_key: :user_id
+      has_many :referral_received, class_name: "Referral", foreign_key: :referred_id, primary_key: :user_id
+
+      validates :referral_code, presence: true, uniqueness: true
+      validates :level, presence: true, inclusion: { in: 1..3 }
+      validates :activity_multiplier, presence: true, numericality: { greater_than: 0 }
+
+      before_validation :generate_referral_code, on: :create
+
+      # XP thresholds for leveling up
+      LEVEL_THRESHOLDS = {
+        1 => 0,
+        2 => 100,
+        3 => 500
+      }.freeze
+
+      # Capabilities unlocked at each level
+      LEVEL_CAPABILITIES = {
+        1 => ['basic_tasks'],
+        2 => ['team_creation', 'mentoring'],
+        3 => ['admin_tasks', 'team_leadership', 'advanced_mentoring']
+      }.freeze
+
+      def add_xp(amount)
+        old_level = level
+        self.total_xp += amount
+        new_level = calculate_level
+        
+        if new_level > old_level
+          level_up(new_level)
+        end
+        
+        save!
+      end
+
+      def add_scicent(amount)
+        self.total_scicent_earned += amount
+        save!
+      end
+
+      def increment_tasks_completed
+        self.tasks_completed += 1
+        save!
+      end
+
+      def update_last_activity
+        self.last_activity_at = Time.current
+        save!
+      end
+
+      def current_level_capabilities
+        LEVEL_CAPABILITIES[level] || []
+      end
+
+      def next_level_xp_required
+        next_level = level + 1
+        return nil if next_level > 3
+        
+        LEVEL_THRESHOLDS[next_level] - total_xp
+      end
+
+      def progress_to_next_level
+        return 100 if level >= 3
+        
+        current_threshold = LEVEL_THRESHOLDS[level]
+        next_threshold = LEVEL_THRESHOLDS[level + 1]
+        
+        return 100 if next_threshold.nil?
+        
+        progress = ((total_xp - current_threshold).to_f / (next_threshold - current_threshold)) * 100
+        [progress, 100].min
+      end
+
+      private
+
+      def generate_referral_code
+        self.referral_code = SecureRandom.alphanumeric(8).upcase
+      end
+
+      def calculate_level
+        LEVEL_THRESHOLDS.select { |level, threshold| total_xp >= threshold }.keys.max
+      end
+
+      def level_up(new_level)
+        self.level = new_level
+        new_capabilities = LEVEL_CAPABILITIES[new_level] || []
+        self.capabilities = (current_level_capabilities + new_capabilities).uniq
+        
+        # Add achievement
+        achievements = self.achievements || []
+        achievements << {
+          type: 'level_up',
+          level: new_level,
+          earned_at: Time.current,
+          xp_at_time: total_xp
+        }
+        self.achievements = achievements
+      end
+    end
+  end
+end
+
+# app/models/decidim/volunteer_scheduler/referral.rb
+module Decidim
+  module VolunteerScheduler
+    class Referral < ApplicationRecord
+      belongs_to :referrer, class_name: "Decidim::User"
+      belongs_to :referred, class_name: "Decidim::User"
+
+      validates :level, presence: true, inclusion: { in: 1..5 }
+      validates :commission_rate, presence: true, numericality: { greater_than: 0, less_than_or_equal_to: 1 }
+
+      # Commission rates by referral level
+      COMMISSION_RATES = {
+        1 => 0.10,  # 10%
+        2 => 0.08,  # 8%
+        3 => 0.06,  # 6%
+        4 => 0.04,  # 4%
+        5 => 0.02   # 2%
+      }.freeze
+
+      def self.create_referral_chain(referrer, referred)
+        current_referrer = referrer
+        level = 1
+
+        while current_referrer && level <= 5
+          create!(
+            referrer: current_referrer,
+            referred: referred,
+            level: level,
+            commission_rate: COMMISSION_RATES[level]
+          )
+
+          current_referrer = current_referrer.volunteer_profile&.referrer
+          level += 1
+        end
+      end
+
+      def add_commission(amount)
+        commission = amount * commission_rate
+        self.total_commission += commission
+        save!
+
+        # Add to referrer's profile
+        referrer.volunteer_profile.referral_scicent_earned += commission
+        referrer.volunteer_profile.save!
+
+        commission
+      end
+    end
+  end
+end
+
+# Add to Decidim::User model extension
+# app/models/concerns/decidim/volunteer_scheduler/user_extensions.rb
+module Decidim
+  module VolunteerScheduler
+    module UserExtensions
+      extend ActiveSupport::Concern
+
+      included do
+        has_one :volunteer_profile, 
+                class_name: "Decidim::VolunteerScheduler::VolunteerProfile",
+                dependent: :destroy
+
+        has_many :task_assignments, 
+                 class_name: "Decidim::VolunteerScheduler::TaskAssignment",
+                 foreign_key: :assignee_id,
+                 dependent: :destroy
+
+        after_create :create_volunteer_profile, if: :should_create_volunteer_profile?
+      end
+
+      def volunteer?
+        volunteer_profile.present?
+      end
+
+      def volunteer_level
+        volunteer_profile&.level || 1
+      end
+
+      def volunteer_xp
+        volunteer_profile&.total_xp || 0
+      end
+
+      private
+
+      def should_create_volunteer_profile?
+        # Add logic to determine when to create volunteer profile
+        # For example, when user confirms email or completes onboarding
+        confirmed?
+      end
+
+      def create_volunteer_profile
+        Decidim::VolunteerScheduler::VolunteerProfile.create!(user: self)
+      end
+    end
+  end
+end
+
+# Include the extension
+Rails.application.config.to_prepare do
+  Decidim::User.include Decidim::VolunteerScheduler::UserExtensions
+end

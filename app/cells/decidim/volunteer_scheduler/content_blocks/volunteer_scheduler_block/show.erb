@@ -1,0 +1,84 @@
+<% if current_user && current_volunteer_profile %>
+  <div class="volunteer-scheduler-block">
+    <div class="card">
+      <div class="card-divider">
+        <h3>
+          <%= t("decidim.volunteer_scheduler.content_blocks.volunteer_scheduler.title") %>
+        </h3>
+      </div>
+      <div class="card-section">
+        <div class="row">
+          <div class="large-6 columns">
+            <div class="stat-card">
+              <h4><%= t("decidim.volunteer_scheduler.content_blocks.volunteer_scheduler.level") %></h4>
+              <p class="stat-number"><%= stats[:level] %></p>
+            </div>
+          </div>
+          <div class="large-6 columns">
+            <div class="stat-card">
+              <h4><%= t("decidim.volunteer_scheduler.content_blocks.volunteer_scheduler.total_xp") %></h4>
+              <p class="stat-number"><%= stats[:total_xp] %></p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="large-6 columns">
+            <div class="stat-card">
+              <h4><%= t("decidim.volunteer_scheduler.content_blocks.volunteer_scheduler.available_tasks") %></h4>
+              <p class="stat-number"><%= stats[:available_tasks_count] %></p>
+            </div>
+          </div>
+          <div class="large-6 columns">
+            <div class="stat-card">
+              <h4><%= t("decidim.volunteer_scheduler.content_blocks.volunteer_scheduler.pending_assignments") %></h4>
+              <p class="stat-number"><%= stats[:pending_assignments_count] %></p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center">
+          <%= link_to t("decidim.volunteer_scheduler.content_blocks.volunteer_scheduler.go_to_dashboard"), 
+                     dashboard_path, 
+                     class: "button expanded" %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% elsif current_user %>
+  <div class="volunteer-scheduler-block">
+    <div class="card">
+      <div class="card-divider">
+        <h3>
+          <%= t("decidim.volunteer_scheduler.content_blocks.volunteer_scheduler.title") %>
+        </h3>
+      </div>
+      <div class="card-section">
+        <p><%= t("decidim.volunteer_scheduler.content_blocks.volunteer_scheduler.join_message") %></p>
+        <div class="text-center">
+          <%= link_to t("decidim.volunteer_scheduler.content_blocks.volunteer_scheduler.get_started"), 
+                     dashboard_path, 
+                     class: "button expanded success" %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% else %>
+  <div class="volunteer-scheduler-block">
+    <div class="card">
+      <div class="card-divider">
+        <h3>
+          <%= t("decidim.volunteer_scheduler.content_blocks.volunteer_scheduler.title") %>
+        </h3>
+      </div>
+      <div class="card-section">
+        <p><%= t("decidim.volunteer_scheduler.content_blocks.volunteer_scheduler.login_message") %></p>
+        <div class="text-center">
+          <%= link_to t("decidim.volunteer_scheduler.content_blocks.volunteer_scheduler.login_to_participate"), 
+                     decidim.new_user_session_path, 
+                     class: "button expanded" %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

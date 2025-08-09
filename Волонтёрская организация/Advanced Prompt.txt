@@ -1,0 +1,163 @@
+**Project:**
+Develop a fully native and scalable Decidim module called `volunteer_scheduler` that enables gamified volunteer engagement and token-based reward distribution through tasks and a multi-level referral system.
+
+---
+
+### 🎯 OBJECTIVE
+
+Create a self-contained, production-quality Ruby on Rails module within Decidim that:
+
+* Assigns and tracks volunteer tasks
+* Implements XP & level system
+* Enables 5-level referral tracking
+* Calculates competitive activity multipliers
+* Distributes Scicent tokens (via external webhook-triggered logic)
+* Is **modular**, clean, standards-compliant, and **uses existing Decidim features** wherever possible.
+
+---
+
+### ⚙️ PLATFORM
+
+* Base: **Latest Decidim (development branch)**
+* Host: **Ubuntu WSL2 dev environment**
+* Application Path: `/home/scicent/projects/decidim/development_app`
+
+---
+
+### ✅ PHASE 1 GOAL
+
+Deliver a working version of the `volunteer_scheduler` module with:
+
+* Volunteer profiles (linked to Decidim users)
+* Task templates (created by admin, categorized by level & frequency)
+* Assignments (created when a volunteer accepts a task)
+* XP/level tracking for volunteers
+* Admin interfaces for task & assignment management
+* Referral system (5-level referral structure)
+* Follow-up submission & approval flow
+* Native notifications (no email, only internal UI)
+* Dashboard for volunteers with XP bar, tasks, and referral info
+
+---
+
+### 📦 DESIGN REQUIREMENTS
+
+**Task System:**
+
+* Tasks defined via templates (`TaskTemplate`)
+* Each task has: title, description, level requirement, XP award, category, frequency (daily/weekly)
+* Volunteers receive new randomized tasks daily based on their level
+* They self-assign tasks using Decidim's Follow-up component
+* Completion grants XP (levels managed in admin settings)
+
+**Referral System:**
+
+* Each volunteer has a referral code (user ID or UUID)
+* New users can sign up using referral link (via URL param/session)
+* Referrer receives no instant reward — only benefits from sales and activity
+* Supports 5-level chain with referral commission and shared activity multiplier logic
+
+**Activity Multiplier:**
+
+* Each volunteer has a multiplier based on:
+
+  * Personal task completion & token sales
+  * Activity of referred users (up to 5 levels down)
+* Final multiplier determines share of monthly token budget
+* Admin sets budget; distribution logic processes in batches
+
+**Admin Panel:**
+
+* Task template creation & filtering
+* Review submitted tasks (approve/reject with comment)
+* Adjust XP thresholds per level
+* See referral trees and stats
+* Bulk review actions
+
+**Volunteer Dashboard:**
+
+* XP progress bar with level info
+* Available tasks (cards)
+* Completed/failed tasks
+* Retry rejected assignments
+* Referral code + link display
+
+---
+
+### 📚 USE OFFICIAL RESOURCES
+
+* Use **Decidim’s internal APIs**, conventions, generators
+* **Analyze existing components** before writing new logic
+* Read:
+
+  * [https://github.com/decidim/decidim](https://github.com/decidim/decidim)
+  * [https://docs.decidim.org/en/develop/](https://docs.decidim.org/en/develop/)
+  * [https://docs.decidim.org/en/develop/install/manual](https://docs.decidim.org/en/develop/install/manual)
+
+---
+
+### 📤 OUTPUT RULES FOR AI
+
+* Never rush output — validate architecture before generating
+* Before adding anything, check:
+
+  * Is this available natively in Decidim?
+  * Can it be reused or extended?
+* Always separate logic into clear `models`, `controllers`, `views`, `cells`, and `admin`
+* Follow Ruby + Rails + Decidim style guides
+* Write fully working migrations, routes, views, locale files
+* Avoid email notifications except for:
+
+  * Account creation
+  * Major perk unlocks
+  * Monthly token report
+* Prepare testing only **after Phase 1 code is stable**
+
+---
+
+### 🧠 LONG-TERM INTELLIGENCE
+
+The AI will be responsible for:
+
+* Maintaining the full lifecycle of the module
+* Creating roadmap specs for Phase 2 and 3
+* Designing a scalable reward engine
+* Integrating webhook logic for token sales
+* Optimizing performance and DB usage
+* Eventually supporting sub-org scopes and multilingual UI
+
+---
+
+### 🔑 BEGIN HERE
+
+1. Generate the component:
+
+```bash
+cd /home/scicent/projects/decidim/development_app
+rails generate decidim:component volunteer_scheduler
+```
+
+2. Build core models and migrations:
+
+   * `VolunteerProfile`
+   * `TaskTemplate`
+   * `TaskAssignment`
+   * `ReferralLink` (5-level tree logic)
+
+3. Develop full admin + public routes, controllers, views
+
+4. Use native Decidim:
+
+   * `NotificationCenter`
+   * `Follow-ups`
+   * `ActivityTracker`
+   * `Component Settings`
+   * `Authorization` and `Scopes`
+
+---
+
+### 📦 YOUR JOB AS AI
+
+You are not a code snippet generator. You are a **full-stack Decidim architect and engineer** tasked with delivering the `volunteer_scheduler` module with clean, native, scalable, and maintainable Ruby on Rails code.
+
+You will continue this project over multiple sessions. Store and remember design decisions.

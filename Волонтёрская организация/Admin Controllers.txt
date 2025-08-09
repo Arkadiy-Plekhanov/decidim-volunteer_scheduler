@@ -1,0 +1,156 @@
+Implement the **Admin Controllers and Views** because they form the backbone of your ability to manage tasks, levels, and volunteer submissions. Admin features will follow Decidim's admin pattern using `Decidim::Admin::ApplicationController`.
+
+---
+
+## ✅ Admin Controllers
+
+### 1. `Admin::TaskTemplatesController`
+
+Manages all daily/weekly task templates visible to volunteers.
+
+```ruby
+# app/controllers/decidim/volunteer_scheduler/admin/task_templates_controller.rb
+module Decidim
+  module VolunteerScheduler
+    module Admin
+      class TaskTemplatesController < Decidim::Admin::ApplicationController
+        def index
+          @task_templates = TaskTemplate.all.order(created_at: :desc)
+        end
+
+        def new
+          @task_template = TaskTemplate.new
+        end
+
+        def create
+          @task_template = TaskTemplate.new(task_template_params)
+          if @task_template.save
+            flash[:notice] = t(".success")
+            redirect_to admin_task_templates_path
+          else
+            render :new
+          end
+        end
+
+        def edit
+          @task_template = TaskTemplate.find(params[:id])
+        end
+
+        def update
+          @task_template = TaskTemplate.find(params[:id])
+          if @task_template.update(task_template_params)
+            flash[:notice] = t(".updated")
+            redirect_to admin_task_templates_path
+          else
+            render :edit
+          end
+        end
+
+        def destroy
+          @task_template = TaskTemplate.find(params[:id])
+          @task_template.destroy
+          redirect_to admin_task_templates_path, notice: t(".deleted")
+        end
+
+        private
+
+        def task_template_params
+          params.require(:task_template).permit(
+            :title, :description, :level_required, :xp_award,
+            :category, :frequency, :active
+          )
+        end
+      end
+    end
+  end
+end
+```
+
+---
+
+### 2. `Admin::AssignmentsController`
+
+Admin can review, approve, or reject submitted tasks here.
+
+```ruby
+# app/controllers/decidim/volunteer_scheduler/admin/assignments_controller.rb
+module Decidim
+  module VolunteerScheduler
+    module Admin
+      class AssignmentsController < Decidim::Admin::ApplicationController
+        def index
+          @assignments = TaskAssignment.includes(:user, :task_template)
+            .order(created_at: :desc)
+            .where(status: :submitted)
+        end
+
+        def show
+          @assignment = TaskAssignment.find(params[:id])
+        end
+
+        def approve
+          assignment = TaskAssignment.find(params[:id])
+          profile = VolunteerProfile.find_by(user: assignment.user)
+
+          assignment.update!(
+            status: :approved,
+            reviewed_by: current_user,
+            review_comment: params[:review_comment]
+          )
+
+          # Apply XP
+          profile.increment!(:xp_total, assignment.task_template.xp_award)
+
+          # TODO: Auto-level-up check & notify
+
+          flash[:notice] = t(".approved")
+          redirect_to admin_assignments_path
+        end
+
+        def reject
+          assignment = TaskAssignment.find(params[:id])
+          assignment.update!(
+            status: :rejected,
+            reviewed_by: current_user,
+            review_comment: params[:review_comment]
+          )
+
+          flash[:alert] = t(".rejected")
+          redirect_to admin_assignments_path
+        end
+      end
+    end
+  end
+end
+```
+
+---
+
+### 🔧 Admin Routes
+
+```ruby
+# config/routes.rb
+Decidim::VolunteerScheduler::Engine.routes.draw do
+  namespace :admin do
+    resources :task_templates
+    resources :assignments, only: [:index, :show] do
+      member do
+        post :approve
+        post :reject
+      end
+    end
+  end
+end
+```
+
+---
+
+### 📄 View Templates (Skeletons only, to be expanded in UI phase)
+
+* `admin/task_templates/index.html.erb`
+* `admin/task_templates/_form.html.erb`
+* `admin/assignments/index.html.erb`
+* `admin/assignments/show.html.erb`
+
+We will later implement bulk actions, comment boxes, status badges, and links to the follow-up submission inside `show.html.erb`.
+

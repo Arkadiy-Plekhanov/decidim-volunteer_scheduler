@@ -1,0 +1,176 @@
+Great — here’s a **structured specification and goal document** for **Phase 1** of the `volunteer_scheduler` module. This version will deliver the **minimum viable functionality**, fully Decidim-native, and ready to test on your instance.
+
+---
+
+# 📄 Phase 1 Goal Document
+
+**Module Name:** `volunteer_scheduler`
+**Platform:** Decidim (latest `develop` version)
+**Purpose:** Manage volunteer tasks, referrals, XP, and multipliers using Decidim-native patterns.
+
+---
+
+## ✅ Functional Goals for Phase 1
+
+### 1. 📚 Task System — Daily/Weekly Assignments
+
+* **TaskTemplate**: Admin-defined templates with XP, level requirements, frequency
+* **TaskAssignment**: Volunteer accepts tasks (self-assigned), submits report via Follow-Up
+* **Rotation Engine**: Volunteers see a randomized list of tasks filtered by their level
+* **Assignment States**: Pending → Submitted → Approved/Rejected
+
+### 2. 🧠 XP and Level Progression
+
+* **XP Tracking** per task accepted and completed
+* **Level thresholds** defined in admin panel (editable)
+* **Auto-level-up** based on XP
+* **Perks preview** shown on level-up (static for now)
+
+### 3. 🎯 Volunteer Profile
+
+* Tracks:
+
+  * XP total
+  * Level
+  * Activity multiplier (stub for now)
+  * Referral relationships (5 levels, auto-generated on signup via code)
+
+### 4. 🔗 Referral System
+
+* Each user has:
+
+  * Unique referral code
+  * Track of who they referred (L1)
+  * Recursive building of L2–L5 (with proper graph caching)
+* Referral tree visible on dashboard
+* Admin can view referral lineage per volunteer
+
+### 5. 🔔 Notifications
+
+* Native Decidim notifications:
+
+  * Task approval/rejection
+  * Level up with Perk message
+  * Commission received (stub)
+* **No email used**, except for:
+
+  * Account confirmation
+  * Perk/unlock notifications (Level-up)
+  * Monthly token statement (stub)
+
+### 6. 🛠 Admin Panel
+
+* Full CRUD for:
+
+  * Task templates (with XP, category, level requirement, frequency)
+  * Task assignments (review with approve/reject + comment)
+  * XP thresholds per level
+* Bulk actions: approve/reject multiple tasks
+* Comment on rejections (visible to volunteer)
+* Monitor task stats per user (completed/failed)
+
+---
+
+## 🗂️ Data Models (Minimal Implementation)
+
+### `VolunteerProfile`
+
+* `user_id`
+* `xp_total`
+* `level`
+* `activity_multiplier` (float, default 1.0)
+* `referrer_id` (L1 only)
+
+### `TaskTemplate`
+
+* `title`
+* `description`
+* `level_required`
+* `xp_award`
+* `category`
+* `frequency` (daily/weekly)
+* `active` (boolean)
+
+### `TaskAssignment`
+
+* `user_id`
+* `task_template_id`
+* `status` (pending, submitted, approved, rejected)
+* `submission_data` (Follow-up ID)
+* `submitted_at`
+* `reviewed_by` (admin ID)
+* `review_comment`
+
+---
+
+## 🔄 Workflows
+
+### Volunteer Assignment Flow
+
+1. Volunteer logs in → sees a **randomized list** of tasks matching or below their level
+2. Clicks “Accept” → task becomes `TaskAssignment` in `pending` state
+3. Completes the task → submits text/media via **Follow-up**
+4. Admin reviews → sets assignment to `approved` or `rejected`
+5. On approval:
+
+   * XP awarded
+   * Level auto-updated (if threshold passed)
+   * Notification sent
+6. On rejection:
+
+   * Notification with comment
+   * XP not awarded
+   * Task listed in “Failed Assignments” with retry option
+
+### Referral Chain Creation
+
+* On registration, volunteer enters referral code (optional)
+* Code binds them to L1 referrer (if valid)
+* Decidim tracks full 5-level ancestry via recursive cache
+
+---
+
+## 🧪 Minimal UI (Phase 1)
+
+### Volunteer Dashboard
+
+* XP & Level progress bar
+* Task feed: today’s/this week’s assignments (random)
+* Completed & failed assignments
+* Referral link + referral tree view (levels 1–5)
+* “Perk Preview” on next level
+
+### Admin Panel
+
+* Tabs:
+
+  * Task Templates (CRUD)
+  * Assignments (filter by status/user, review mode)
+  * XP Thresholds
+  * Volunteer Overview (read-only)
+
+---
+
+## 🔒 Decidim Native Features Used
+
+* **Component architecture**
+* **Follow-ups** (for task reports)
+* **Notifications**
+* **Admin scopes & permissions**
+* **Cell views** (for task cards, XP meters)
+* **Settings YAML** for XP thresholds, levels, perks
+
+---
+
+## 🧱 Deliverables of Phase 1
+
+* `volunteer_scheduler/` component
+* All 3 models + admin forms + migrations
+* Volunteer dashboard views
+* Admin interface for tasks + XP
+* Follow-up integration
+* Notification logic
+* XP level-up and tracking
+* Referral code generation and chaining
+* Task visibility by level and acceptance flow
+* Seed data & fixtures for development testing

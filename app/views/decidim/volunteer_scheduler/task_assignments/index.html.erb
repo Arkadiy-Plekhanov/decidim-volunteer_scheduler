@@ -1,0 +1,82 @@
+<% add_decidim_page_title(t(".title")) %>
+
+<div class="row">
+  <div class="large-12 columns">
+    <div class="card">
+      <div class="card-divider">
+        <h2 class="card-title">
+          <%= t(".title") %>
+        </h2>
+      </div>
+      <div class="card-section">
+        <div class="filters">
+          <%= link_to t(".all"), task_assignments_path, 
+                     class: "button hollow #{'secondary' if params[:status].blank?}" %>
+          <%= link_to t(".pending"), task_assignments_path(status: :pending), 
+                     class: "button hollow #{'secondary' if params[:status] == 'pending'}" %>
+          <%= link_to t(".submitted"), task_assignments_path(status: :submitted), 
+                     class: "button hollow #{'secondary' if params[:status] == 'submitted'}" %>
+          <%= link_to t(".approved"), task_assignments_path(status: :approved), 
+                     class: "button hollow #{'secondary' if params[:status] == 'approved'}" %>
+          <%= link_to t(".rejected"), task_assignments_path(status: :rejected), 
+                     class: "button hollow #{'secondary' if params[:status] == 'rejected'}" %>
+        </div>
+        
+        <% if @task_assignments.any? %>
+          <div class="table-scroll">
+            <table class="table-list">
+              <thead>
+                <tr>
+                  <th><%= t(".task") %></th>
+                  <th><%= t(".status") %></th>
+                  <th><%= t(".assigned_date") %></th>
+                  <th><%= t(".due_date") %></th>
+                  <th><%= t(".actions") %></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @task_assignments.each do |assignment| %>
+                  <tr>
+                    <td>
+                      <strong><%= assignment.task_template.title %></strong><br>
+                      <small><%= truncate(assignment.task_template.description, length: 100) %></small>
+                    </td>
+                    <td>
+                      <span class="label <%= assignment_status_class(assignment) %>">
+                        <%= t("decidim.volunteer_scheduler.task_assignments.status.#{assignment.status}") %>
+                      </span>
+                    </td>
+                    <td><%= l(assignment.assigned_at, format: :short) %></td>
+                    <td>
+                      <% if assignment.due_date %>
+                        <%= l(assignment.due_date, format: :short) %>
+                        <% if assignment.overdue? %>
+                          <span class="label alert"><%= t(".overdue") %></span>
+                        <% end %>
+                      <% else %>
+                        —
+                      <% end %>
+                    </td>
+                    <td>
+                      <%= link_to t(".view"), task_assignment_path(assignment), class: "button tiny" %>
+                      <% if assignment.can_be_submitted? %>
+                        <%= link_to t(".submit_work"), task_assignment_path(assignment), 
+                                   class: "button tiny success" %>
+                      <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+          
+          <%= paginate @task_assignments %>
+        <% else %>
+          <div class="callout">
+            <%= t(".no_assignments") %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

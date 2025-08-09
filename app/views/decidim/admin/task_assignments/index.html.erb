@@ -1,0 +1,164 @@
+<% add_decidim_page_title(t(".title")) %>
+
+<div class="card">
+  <div class="card-divider">
+    <h2 class="card-title">
+      <%= t(".title") %>
+    </h2>
+  </div>
+  
+  <div class="card-section">
+    <div class="filters">
+      <%= link_to t(".all"), task_assignments_path, 
+                 class: "button hollow tiny #{'secondary' if params[:status].blank?}" %>
+      <%= link_to t(".pending"), task_assignments_path(status: :pending), 
+                 class: "button hollow tiny #{'secondary' if params[:status] == 'pending'}" %>
+      <%= link_to t(".submitted"), task_assignments_path(status: :submitted), 
+                 class: "button hollow tiny #{'secondary' if params[:status] == 'submitted'}" %>
+      <%= link_to t(".approved"), task_assignments_path(status: :approved), 
+                 class: "button hollow tiny #{'secondary' if params[:status] == 'approved'}" %>
+      <%= link_to t(".rejected"), task_assignments_path(status: :rejected), 
+                 class: "button hollow tiny #{'secondary' if params[:status] == 'rejected'}" %>
+    </div>
+    
+    <% if @task_assignments.any? %>
+      <%= form_with url: bulk_approve_task_assignments_path, method: :patch, local: true, id: "bulk_actions_form" do |form| %>
+        <div class="table-list">
+          <div class="bulk-actions">
+            <div class="bulk-actions__group">
+              <input type="checkbox" id="select_all" />
+              <label for="select_all"><%= t(".select_all") %></label>
+            </div>
+            <div class="bulk-actions__group">
+              <%= form.submit t(".bulk_approve"), class: "button tiny success", name: "bulk_action", value: "approve" %>
+              <%= form.submit t(".bulk_reject"), class: "button tiny alert", name: "bulk_action", value: "reject" %>
+            </div>
+          </div>
+          
+          <table class="table-list__table">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="select_all_header" /></th>
+                <th><%= t(".volunteer") %></th>
+                <th><%= t(".task") %></th>
+                <th><%= t(".status") %></th>
+                <th><%= t(".submitted_date") %></th>
+                <th><%= t(".due_date") %></th>
+                <th><%= t(".actions") %></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @task_assignments.each do |assignment| %>
+                <tr>
+                  <td>
+                    <% if assignment.submitted? %>
+                      <%= form.check_box :assignment_ids, 
+                                        { multiple: true, id: "assignment_#{assignment.id}" }, 
+                                        assignment.id, "" %>
+                    <% end %>
+                  </td>
+                  <td>
+                    <%= assignment.assignee.user.name %><br>
+                    <small>Level <%= assignment.assignee.level %></small>
+                  </td>
+                  <td>
+                    <strong><%= assignment.task_template.title %></strong><br>
+                    <small><%= assignment.task_template.category %></small>
+                  </td>
+                  <td>
+                    <span class="label <%= assignment_status_class(assignment) %>">
+                      <%= t("decidim.volunteer_scheduler.task_assignments.status.#{assignment.status}") %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if assignment.submitted_at %>
+                      <%= l(assignment.submitted_at, format: :short) %>
+                    <% else %>
+                      —
+                    <% end %>
+                  </td>
+                  <td>
+                    <% if assignment.due_date %>
+                      <%= l(assignment.due_date, format: :short) %>
+                      <% if assignment.overdue? %>
+                        <span class="label alert"><%= t(".overdue") %></span>
+                      <% end %>
+                    <% else %>
+                      —
+                    <% end %>
+                  </td>
+                  <td>
+                    <div class="table-list__actions">
+                      <%= link_to t(".view"), task_assignment_path(assignment), 
+                                 class: "action-icon--view", title: t(".view") %>
+                      
+                      <% if assignment.can_be_reviewed? %>
+                        <%= link_to t(".approve"), task_assignment_path(assignment), 
+                                   method: :patch,
+                                   params: { action_type: "approve" },
+                                   class: "action-icon--approve", 
+                                   title: t(".approve"),
+                                   confirm: t(".approve_confirm") %>
+                        
+                        <%= link_to t(".reject"), task_assignment_path(assignment), 
+                                   method: :patch,
+                                   params: { action_type: "reject" },
+                                   class: "action-icon--reject", 
+                                   title: t(".reject"),
+                                   confirm: t(".reject_confirm") %>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+      
+      <%= paginate @task_assignments %>
+    <% else %>
+      <div class="empty-state">
+        <div class="empty-state__icon">
+          <i class="icon--assignment"></i>
+        </div>
+        <h3><%= t(".no_assignments") %></h3>
+        <p><%= t(".no_assignments_description") %></p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const selectAll = document.getElementById('select_all');
+  const selectAllHeader = document.getElementById('select_all_header');
+  const checkboxes = document.querySelectorAll('input[name="assignment_ids[]"]');
+  
+  [selectAll, selectAllHeader].forEach(checkbox => {
+    if (checkbox) {
+      checkbox.addEventListener('change', function() {
+        checkboxes.forEach(cb => cb.checked = this.checked);
+        if (selectAll !== this) selectAll.checked = this.checked;
+        if (selectAllHeader !== this) selectAllHeader.checked = this.checked;
+      });
+    }
+  });
+  
+  checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+      const noneChecked = Array.from(checkboxes).every(cb => !cb.checked);
+      
+      if (selectAll) {
+        selectAll.checked = allChecked;
+        selectAll.indeterminate = !allChecked && !noneChecked;
+      }
+      if (selectAllHeader) {
+        selectAllHeader.checked = allChecked;
+        selectAllHeader.indeterminate = !allChecked && !noneChecked;
+      }
+    });
+  });
+});
+</script>

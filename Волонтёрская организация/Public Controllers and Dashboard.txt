@@ -1,0 +1,149 @@
+This gives volunteers the ability to:
+
+* View their task pool (based on level)
+* Accept tasks
+* Track completed/failed assignments
+* View XP, level, and progress
+* Access and share their referral link
+* See their referral tree
+
+---
+
+## ✅ Public Controllers & Views
+
+### 1. `TasksController`
+
+Responsible for listing available tasks for volunteers to accept (filtered by level and frequency).
+
+```ruby
+# app/controllers/decidim/volunteer_scheduler/tasks_controller.rb
+module Decidim
+  module VolunteerScheduler
+    class TasksController < Decidim::ApplicationController
+      before_action :authenticate_user!
+      before_action :load_profile
+
+      def index
+        @task_pool = TaskTemplate.random_pool_for(@profile)
+      end
+
+      def accept
+        @task = TaskTemplate.find(params[:id])
+        return redirect_to tasks_path unless @task.active?
+
+        TaskAssignment.create!(
+          user: current_user,
+          task_template: @task,
+          status: :pending
+        )
+
+        flash[:notice] = t(".accepted")
+        redirect_to assignments_path
+      end
+
+      private
+
+      def load_profile
+        @profile = VolunteerProfile.find_or_create_by!(user: current_user)
+      end
+    end
+  end
+end
+```
+
+---
+
+### 2. `AssignmentsController`
+
+Shows pending, completed, and failed tasks; allows user to submit reports or retry failed ones.
+
+```ruby
+# app/controllers/decidim/volunteer_scheduler/assignments_controller.rb
+module Decidim
+  module VolunteerScheduler
+    class AssignmentsController < Decidim::ApplicationController
+      before_action :authenticate_user!
+      before_action :load_profile
+
+      def index
+        @pending = current_user.task_assignments.pending
+        @completed = current_user.task_assignments.completed
+        @failed = current_user.task_assignments.failed
+      end
+
+      def submit
+        @assignment = current_user.task_assignments.find(params[:id])
+        return redirect_to assignments_path unless @assignment.pending?
+
+        # Redirect to Follow-up creation
+        redirect_to decidim.new_followup_path(
+          followable_type: "Decidim::VolunteerScheduler::TaskAssignment",
+          followable_id: @assignment.id
+        )
+      end
+
+      private
+
+      def load_profile
+        @profile = VolunteerProfile.find_or_create_by!(user: current_user)
+      end
+    end
+  end
+end
+```
+
+---
+
+### 3. `DashboardController`
+
+Volunteer dashboard with XP, level, referral info, etc.
+
+```ruby
+# app/controllers/decidim/volunteer_scheduler/dashboard_controller.rb
+module Decidim
+  module VolunteerScheduler
+    class DashboardController < Decidim::ApplicationController
+      before_action :authenticate_user!
+
+      def show
+        @profile = VolunteerProfile.find_or_create_by!(user: current_user)
+        @level = @profile.level
+        @xp = @profile.xp_total
+        @threshold = @profile.current_threshold
+        @referrals = Decidim::User.where(referrer_id: current_user.id)
+      end
+    end
+  end
+end
+```
+
+---
+
+### 🔧 Routes
+
+```ruby
+# config/routes.rb
+Decidim::VolunteerScheduler::Engine.routes.draw do
+  resource :dashboard, only: :show
+  resources :tasks, only: [:index] do
+    member do
+      post :accept
+    end
+  end
+  resources :assignments, only: [:index] do
+    member do
+      get :submit
+    end
+  end
+end
+```
+
+---
+
+### 🖥️ Basic Views (To Be Rendered in Phase 1)
+
+* `dashboard/show.html.erb`
+* `tasks/index.html.erb` (with accept button)
+* `assignments/index.html.erb` (grouped tabs: Pending, Completed, Failed)
+
+These will rely on native Decidim layouts (`decidim:content_block`, `decidim:application_layout`) and use Cells for XP bar, referral tree, and task cards.

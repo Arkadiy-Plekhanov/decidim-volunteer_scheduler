@@ -1,0 +1,197 @@
+<% add_decidim_page_title(t(".title")) %>
+
+<div class="row">
+  <div class="large-12 columns">
+    <div class="card">
+      <div class="card-divider">
+        <h2 class="card-title">
+          <%= t(".my_profile") %>
+        </h2>
+      </div>
+      <div class="card-section">
+        <%= cell("decidim/volunteer_scheduler/xp_progress", current_volunteer_profile) %>
+        
+        <div class="row">
+          <div class="large-6 columns">
+            <p><strong><%= t(".my_level") %>:</strong> <%= current_volunteer_profile.level %></p>
+            <p><strong><%= t(".total_xp") %>:</strong> <%= current_volunteer_profile.total_xp %></p>
+          </div>
+          <div class="large-6 columns">
+            <p><strong><%= t(".referral_code") %>:</strong> <%= current_volunteer_profile.referral_code %></p>
+            <p><strong><%= t(".activity_multiplier") %>:</strong> <%= current_volunteer_profile.activity_multiplier.round(2) %>x</p>
+          </div>
+        </div>
+        
+        <div class="callout secondary">
+          <h6><%= t(".referral_link") %></h6>
+          <div class="input-group">
+            <input class="input-group-field" type="text" value="<%= current_volunteer_profile.referral_url %>" readonly>
+            <div class="input-group-button">
+              <button class="button" onclick="copyToClipboard(this.previousElementSibling.previousElementSibling)">
+                <%= t(".copy") %>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="large-6 columns">
+    <div class="card">
+      <div class="card-divider">
+        <h3 class="card-title">
+          <%= t(".available_tasks") %>
+        </h3>
+      </div>
+      <div class="card-section">
+        <% if @available_tasks.any? %>
+          <% @available_tasks.each do |task| %>
+            <%= cell("decidim/volunteer_scheduler/task_card", task) %>
+          <% end %>
+        <% else %>
+          <div class="callout warning">
+            <%= t(".no_available_tasks") %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  
+  <div class="large-6 columns">
+    <div class="card">
+      <div class="card-divider">
+        <h3 class="card-title">
+          <%= t(".my_assignments") %>
+        </h3>
+      </div>
+      <div class="card-section">
+        <% if @my_assignments.any? %>
+          <% @my_assignments.limit(5).each do |assignment| %>
+            <div class="media-object">
+              <div class="media-object-section">
+                <h6><%= assignment.task_template.title %></h6>
+                <p class="<%= assignment_status_class(assignment) %>">
+                  <%= t("decidim.volunteer_scheduler.task_assignments.status.#{assignment.status}") %>
+                </p>
+                <% if assignment.due_date %>
+                  <small>
+                    <%= t(".due_date", date: l(assignment.due_date, format: :short)) %>
+                  </small>
+                <% end %>
+              </div>
+              <div class="media-object-section middle">
+                <%= link_to t(".view"), task_assignment_path(assignment), class: "button tiny" %>
+              </div>
+            </div>
+          <% end %>
+          
+          <% if @my_assignments.count > 5 %>
+            <div class="text-center">
+              <%= link_to t(".view_all_assignments"), task_assignments_path, class: "button hollow" %>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="callout">
+            <%= t(".no_assignments") %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="large-6 columns">
+    <div class="card">
+      <div class="card-divider">
+        <h3 class="card-title">
+          <%= t(".referral_stats") %>
+        </h3>
+      </div>
+      <div class="card-section">
+        <div class="grid-x grid-margin-x">
+          <div class="cell small-6">
+            <div class="stat-card">
+              <h4><%= @referral_stats[:total_referrals] %></h4>
+              <p><%= t(".total_referrals") %></p>
+            </div>
+          </div>
+          <div class="cell small-6">
+            <div class="stat-card">
+              <h4><%= @referral_stats[:active_referrals] %></h4>
+              <p><%= t(".active_referrals") %></p>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <h5><%= number_to_currency(@referral_stats[:total_commission], unit: "") %> tokens</h5>
+          <p><%= t(".total_commission_earned") %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="large-6 columns">
+    <div class="card">
+      <div class="card-divider">
+        <h3 class="card-title">
+          <%= t(".recent_activity") %>
+        </h3>
+      </div>
+      <div class="card-section">
+        <% if @recent_transactions.any? %>
+          <% @recent_transactions.each do |transaction| %>
+            <div class="media-object">
+              <div class="media-object-section">
+                <h6 class="<%= transaction.is_earning? ? 'success' : 'alert' %>">
+                  <%= transaction.formatted_amount %> 
+                  <%= transaction.xp_amount ? "XP" : "tokens" %>
+                </h6>
+                <p><%= transaction.description %></p>
+                <small><%= l(transaction.created_at, format: :short) %></small>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="callout">
+            <%= t(".no_recent_activity") %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyToClipboard(element) {
+  element.select();
+  element.setSelectionRange(0, 99999);
+  document.execCommand('copy');
+  
+  // Show feedback
+  const button = element.nextElementSibling.nextElementSibling;
+  const originalText = button.textContent;
+  button.textContent = '<%= t(".copied") %>';
+  setTimeout(() => {
+    button.textContent = originalText;
+  }, 2000);
+}
+
+function assignment_status_class(assignment) {
+  case assignment.status
+  when 'pending'
+    'warning'
+  when 'submitted'
+    'primary'
+  when 'approved'
+    'success'
+  when 'rejected'
+    'alert'
+  else
+    ''
+  end
+}
+</script>

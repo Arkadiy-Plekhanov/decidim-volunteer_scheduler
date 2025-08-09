@@ -1,0 +1,120 @@
+Below is a **best-practice proposal** for each facet of your referral + activity-multiplier system, based on modern gamification and loyalty programs. You can tweak any numbers later, but this gives you a solid, industry-standard starting point.
+
+---
+
+## A. Activity Multiplier Design
+
+1. **Measurement Window**
+   ➔ **Rolling 30-day window**
+
+   * Captures both recent and sustained engagement.
+   * Smooths out short bursts vs. long-term inactivity.
+
+2. **Decay Mechanism**
+   ➔ **Exponential decay of 25% every 7 days of no activity**
+
+   * Prevents “multiplier inflation.”
+   * Encourages continuous participation without punishing occasional absences.
+
+3. **Action Weighting**
+   ➔ **Weighted by action impact**
+
+   * **Task completion**: weight = 1
+   * **High-difficulty tasks**: weight = 2
+   * **Token sales volume**: 1 point per \$10 of sales
+   * **Referral-driven activity**: referral bonus multiplies weight by 0.5
+
+4. **Multiplier Scale & Caps**
+
+   * **Base**: 1.0
+   * **Max cap**: 3.0
+   * **Granularity**: 0.01
+   * Rationale: cap prevents runaway advantage; fine granularity keeps competition meaningful.
+
+5. **Referral Influence on Multiplier**
+   ➔ **Diminishing returns per level**
+
+   * **Level 1**: 20% of each referred volunteer’s multiplier
+   * **Level 2**: 10%
+   * **Level 3**: 5%
+   * **Levels 4–5**: 2% each
+   * Rationale: rewards direct referrals more strongly while still valuing deeper network effects.
+
+---
+
+## B. Budget Allocation
+
+6. **Distribution Frequency**
+   ➔ **Monthly on calendar month**
+
+   * Aligns with finance and reporting cycles.
+   * Easier for volunteers to track “Your monthly reward.”
+
+7. **Budget Size**
+   ➔ **Variable % of profits** (set each month)
+
+   * Ties volunteer rewards to actual organizational performance.
+   * Encourages mutual success.
+
+8. **Leftover Handling**
+   ➔ **Roll into next period**
+
+   * Prevents loss of volunteer incentive.
+   * Builds “carry-over” buffer in leaner months.
+
+---
+
+## C. Referral Commission on Sales
+
+9. **Commission Rates per Level**
+
+   * **Level 1**: 10%
+   * **Level 2**: 5%
+   * **Level 3**: 3%
+   * **Level 4**: 2%
+   * **Level 5**: 1%
+   * Rationale: competitive direct reward with long-tail network incentives.
+
+10. **Trigger for Commission**
+    ➔ **Auto-credit immediately on sale record**
+
+    * Fast feedback loop boosts satisfaction.
+    * Admin audit/reversal capability handles disputes (see next).
+
+11. **Reversal/Audit**
+    ➔ **Yes** — allow admins to reverse or adjust individual commissions
+
+    * Ensures governance and fraud prevention.
+
+---
+
+## D. Multiplier & Commission Interaction
+
+12. **Separate Pools vs. Combined**
+    ➔ **Separate but synergistic**
+
+    * Keep **activity multiplier** based purely on actions.
+    * Keep **commission earnings** as a separate ledger.
+    * **Optional bonus**: treat large commission events (e.g. > \$1,000) as a one-time activity boost of +0.1 to multiplier, capped once per period.
+
+13. **Transparency**
+    ➔ **Full breakdown** in volunteer dashboard:
+
+    * **Own activity**: your raw multiplier vs. **referral contributions** per level
+    * **Referral tree visualization**: show up to 3 levels with contributions
+    * **Detailed transaction log**: XP, sales, commissions, and bonus events
+
+---
+
+### Why these choices?
+
+* **Rolling windows + decay** are common in loyalty programs to keep users engaged without penalizing short absences.
+* **Weighted actions** ensure volunteers are rewarded proportionally to effort/value.
+* **Caps + granularity** balance fairness and competitiveness.
+* **Diminishing referral returns** prevent top-heavy networks and encourage depth.
+* **Monthly distribution** aligns with reporting, while **rolling leftovers** maintain trust.
+* **Immediate commissions** maximize motivation; **audit tools** safeguard integrity.
+* **Separate pools** keep accounting clear, with optional synergy to reward big drivers.
+* **Transparency** builds trust and drives healthy competition.
+
+Feel free to adjust any percentage, window, or cap—this framework gives you a robust, best-practice foundation.

@@ -1,0 +1,84 @@
+<% add_decidim_page_title(t(".title")) %>
+
+<div class="card">
+  <div class="card-divider">
+    <h2 class="card-title">
+      <%= t(".title") %>
+    </h2>
+  </div>
+  
+  <div class="card-section">
+    <div class="filters">
+      <%= link_to t(".all_levels"), volunteer_profiles_path, 
+                 class: "button hollow tiny #{'secondary' if params[:level].blank?}" %>
+      <% (1..5).each do |level| %>
+        <%= link_to "Level #{level}", volunteer_profiles_path(level: level), 
+                   class: "button hollow tiny #{'secondary' if params[:level] == level.to_s}" %>
+      <% end %>
+    </div>
+    
+    <% if @volunteer_profiles.any? %>
+      <div class="table-list">
+        <table class="table-list__table">
+          <thead>
+            <tr>
+              <th><%= t(".volunteer") %></th>
+              <th><%= t(".level") %></th>
+              <th><%= t(".total_xp") %></th>
+              <th><%= t(".referral_code") %></th>
+              <th><%= t(".referrals_made") %></th>
+              <th><%= t(".last_activity") %></th>
+              <th><%= t(".actions") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @volunteer_profiles.each do |profile| %>
+              <tr>
+                <td>
+                  <strong><%= profile.user.name %></strong><br>
+                  <small><%= profile.user.email %></small>
+                </td>
+                <td>
+                  <span class="label primary">Level <%= profile.level %></span>
+                </td>
+                <td><%= profile.total_xp %> XP</td>
+                <td>
+                  <code><%= profile.referral_code %></code>
+                </td>
+                <td>
+                  <%= profile.total_referrals_count %>
+                  <% if profile.active_referrals_count > 0 %>
+                    (<%= profile.active_referrals_count %> active)
+                  <% end %>
+                </td>
+                <td>
+                  <% if profile.last_activity_at %>
+                    <%= time_ago_in_words(profile.last_activity_at) %> ago
+                  <% else %>
+                    Never
+                  <% end %>
+                </td>
+                <td>
+                  <div class="table-list__actions">
+                    <%= link_to t(".view"), volunteer_profile_path(profile), 
+                               class: "action-icon--view", title: t(".view") %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+      
+      <%= paginate @volunteer_profiles %>
+    <% else %>
+      <div class="empty-state">
+        <div class="empty-state__icon">
+          <i class="icon--volunteer"></i>
+        </div>
+        <h3><%= t(".no_volunteers") %></h3>
+        <p><%= t(".no_volunteers_description") %></p>
+      </div>
+    <% end %>
+  </div>
+</div>

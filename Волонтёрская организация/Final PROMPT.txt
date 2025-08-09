@@ -1,0 +1,61 @@
+**Final Advice for the AI Engineer Starting the Volunteer Scheduler Module**
+
+1. **Embrace Decidim’s Conventions First**
+
+   * Always check whether a feature (follow-ups, notifications, settings, permissions) already exists in Decidim before inventing new code.
+   * Use the official generator (`decidim:component`) to scaffold every new component, engine, and admin interface.
+
+2. **Phase 1 Discipline**
+
+   * Focus strictly on the Phase 1 MVP: volunteer profiles, task templates & assignments, XP/levels, referral chaining, dashboard, and admin review flows.
+   * Avoid introducing token‐sale webhooks, detailed activity multipliers, or sub-org scopes until Phase 2.
+
+3. **Iterate, Don’t Overengineer**
+
+   * Build each model → migration → controller → view in small, testable increments.
+   * After completing a slice (e.g., TaskAssignment), deploy and verify that volunteers can accept and submit tasks before moving on.
+
+4. **Configurable, Not Hard-Coded**
+
+   * Surface all key parameters (XP awards, level thresholds, referral percents, daily pool size) in the component settings UI.
+   * This lets non-developer admins tune the system without a code change.
+
+5. **Leverage Follow-Ups & NotificationCenter**
+
+   * Use Decidim’s native follow-up forms for task reports, and NotificationCenter for in-app alerts.
+   * Only send email on signup, level-up perks, and the monthly statement.
+
+6. **Build for Transparency**
+
+   * Maintain clear audit trails: every XP award or commission is a database transaction.
+   * Show volunteers exactly how their XP, levels, and referral benefits are calculated.
+
+7. **Design with Extension in Mind**
+
+   * Structure services (e.g. `AssignmentApprover`, `ReferralProcessor`) so you can swap in advanced multiplier logic in Phase 2 without rewriting controllers.
+   * Keep UI cells small and single-purpose for easy styling or replacement later.
+
+8. **Document Every Decision**
+
+   * After implementing each feature, update your module’s README with usage instructions, admin guide, and links to any background jobs or rake tasks.
+   * This will pay dividends when handing off to new team members or staging Phase 2.
+
+9. **Iterate with Feedback**
+
+   * Demo the module to a small group of volunteers and admins early. Collect feedback on usability (task flow, dashboard clarity) before adding complexity.
+
+10. **Prepare for Phase 2**
+
+* Once Phase 1 is stable, you’ll layer in the activity multiplier, token‐sale webhooks, bulk budget distribution, and multi-org support—all designed as pluggable extensions on your Phase 1 core.
+
+---
+
+> **Kick off by generating the component scaffold** and then implement, in order:
+>
+> 1. Migrations & models
+> 2. Public task & dashboard controllers/views
+> 3. Admin task templates & assignment review
+> 4. Referral code binding & 5-level chain service
+> 5. XP/level logic and in-app notifications
+
+Move deliberately, validate at each step, and use Decidim’s native strengths—then you’ll have a rock-solid foundation for all future enhancements. Good luck!

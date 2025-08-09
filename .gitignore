@@ -1,0 +1,106 @@
+# Ruby and Rails
+*.rbc
+capybara-*.html
+.rspec
+/log
+/tmp
+/db/*.sqlite3
+/db/*.sqlite3-journal
+/db/*.sqlite3-[0-9]*
+/public/system
+/coverage/
+/spec/tmp
+*.orig
+rerun.txt
+pickle-email-*.html
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Bundler
+vendor/bundle
+
+# RVM / rbenv
+.rvmrc
+.ruby-version
+.ruby-gemset
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Runtime data
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+
+# Gemfile.lock (for gems)
+Gemfile.lock
+
+# Redis dump
+dump.rdb
+
+# Development database
+*.sqlite3*
+
+# Test files
+test_request.json
+
+# Decidim specific
+/public/uploads
+/public/decidim-packs
+/public/decidim-dev-packs
+/public/packs*
+/node_modules
+/package-lock.json
+/yarn.lock
+
+# Temporary files
+*.tmp
+*.temp
+
+# Documentation build
+/doc/
+/.yardoc/
+
+# Gem build artifacts
+*.gem

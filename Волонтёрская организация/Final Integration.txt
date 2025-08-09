@@ -1,0 +1,105 @@
+Perfect — the right next step is **Final Integration & Component Registration** so that the module becomes discoverable and usable within the Decidim admin panel. This ensures your new component can be installed and tested in the UI before moving to UX polishing (Cells and Dashboard).
+
+---
+
+## ✅ Final Integration
+
+### 1. `component.rb`
+
+Register the module as a Decidim component.
+
+```ruby
+# app/components/decidim/volunteer_scheduler/component.rb
+# frozen_string_literal: true
+
+module Decidim
+  module VolunteerScheduler
+    class Component < Decidim::Components::BaseComponent
+    end
+  end
+end
+```
+
+---
+
+### 2. `manifest.rb`
+
+Register the component and its features with Decidim.
+
+```ruby
+# lib/decidim/volunteer_scheduler/manifest.rb
+Decidim.register_component(:volunteer_scheduler) do |component|
+  component.engine = Decidim::VolunteerScheduler::Engine
+  component.admin = true
+  component.public = true
+  component.stylesheet = "decidim/volunteer_scheduler/application"
+  component.javascripts = "decidim/volunteer_scheduler/application"
+
+  component.settings do |settings|
+    settings.setting :level_thresholds, { "1" => 0, "2" => 100, "3" => 300 }
+    settings.setting :daily_task_limit, 30
+  end
+end
+```
+
+---
+
+### 3. `initializer.rb`
+
+Initialize config and default settings.
+
+```ruby
+# config/initializers/volunteer_scheduler.rb
+Decidim::VolunteerScheduler.configure do |config|
+  config.level_thresholds = {
+    1 => 0,
+    2 => 100,
+    3 => 300
+  }
+
+  config.level_perks = {
+    2 => "Unlocks more tasks",
+    3 => "Enables coaching perks"
+  }
+end
+```
+
+---
+
+### 4. Mounting the Engine
+
+You need to mount the engine inside your main app:
+
+```ruby
+# config/routes.rb in main decidim app
+mount Decidim::VolunteerScheduler::Engine => "/volunteer_scheduler"
+```
+
+---
+
+### 5. Component Appearance in Admin
+
+In the main Decidim admin backend, once the component is registered and added to a space, you'll see:
+
+* TaskTemplates Manager
+* Submitted Assignments Review
+* Settings for Level Thresholds
+
+---
+
+### ✅ What You Can Do Now
+
+You're ready to:
+
+* 🎯 Use the module inside Decidim's Admin
+* ✅ Register and see volunteer task pools
+* 🧪 Accept/complete/submit tasks
+* ✅ Approve them and apply XP logic
+
+---
+
+### 📌 Final Notes Before Phase 2
+
+* Cells/UI views still need to be styled
+* Level-up logic (with perk unlocks) should run in a background job
+* Notification system will be triggered post-task approval

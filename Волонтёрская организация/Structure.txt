@@ -1,0 +1,13 @@
+decidim-volunteer_scheduler/
+├── app/
+│   ├── models/decidim/volunteer_scheduler/
+│   ├── controllers/decidim/volunteer_scheduler/
+│   ├── controllers/decidim/volunteer_scheduler/admin/
+│   ├── views/decidim/volunteer_scheduler/
+│   ├── cells/decidim/volunteer_scheduler/
+├── config/
+│   ├── locales/en.yml
+│   ├── initializers/volunteer_scheduler.rb
+├── lib/
+│   └── decidim/volunteer_scheduler/manifest.rb
+├── README.md

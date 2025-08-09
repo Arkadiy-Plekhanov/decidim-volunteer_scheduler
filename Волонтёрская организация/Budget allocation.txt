@@ -1,0 +1,52 @@
+Breaking a monthly Scicent budget into weekly “pots,” then further into daily micro-rewards is a proven way to sustain momentum—but it also adds complexity. Here’s a quick pros/cons and a recommended approach:
+
+---
+
+### 🔹 Pros of Daily Distribution
+
+1. **Consistent Engagement**
+   Volunteers log in every day “to claim” their share, driving habitual platform use.
+2. **Immediate Feedback**
+   Daily rewards let volunteers see constant progress—very motivating in gamification studies.
+3. **Fine-Grained Control**
+   You can dial up or down daily amounts to respond to campaign needs (e.g. surge tasks).
+
+### 🔸 Cons of Daily Distribution
+
+1. **Operational Overhead**
+   More frequent calculations, scheduled jobs, and UI elements to manage daily budgets.
+2. **Diluted Impact**
+   Tiny daily amounts may feel insignificant—volunteers might ignore micro-payments.
+3. **Complex Rules Management**
+   Splitting budget into 4 weekly buckets, then 7 daily slices, can be confusing for admins.
+
+---
+
+## ⚙️ Recommended Hybrid Model
+
+1. **Monthly Core Budget**
+   Admin sets a single monthly token budget (e.g. 10,000 Scicent).
+
+2. **Weekly “Boost Weeks”**
+   Split that budget into 4 weekly blocks (2,500 each). Released every Monday.
+
+   * Volunteers see “This week’s pool: 2,500 tokens.”
+   * Encourages planning for the week, not just a single day.
+
+3. **Daily Engagement Bonuses**
+   Within each week:
+
+   * **Core daily share** = Weekly pool ÷ 7 (≈357 tokens).
+   * **Bonus daily pot** = 10% of weekly pool (250 tokens) reserved for “top performers of the day.”
+   * Top 5 volunteers by daily multiplier get a share of that bonus pot.
+
+4. **Periodic Reviews & Roll-Over**
+
+   * Unclaimed core daily tokens roll into next day’s pool.
+   * Unclaimed weekly bonus tokens roll into next week’s bonus pot.
+
+This hybrid gives you:
+
+* A **steady floor** (core daily share) that volunteers expect.
+* A **competitive ceiling** (bonus pot) that drives extra effort.
+* **Manageable admin complexity** (splitting only twice instead of daily manual budgets).

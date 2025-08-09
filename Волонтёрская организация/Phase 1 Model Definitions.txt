@@ -1,0 +1,127 @@
+Here are the complete **Phase 1 model definitions** for the `volunteer_scheduler` module, following Decidim conventions:
+
+---
+
+## ✅ `app/models/decidim/volunteer_scheduler/volunteer_profile.rb`
+
+```ruby
+# frozen_string_literal: true
+
+module Decidim
+  module VolunteerScheduler
+    class VolunteerProfile < ApplicationRecord
+      belongs_to :user, class_name: "Decidim::User"
+      belongs_to :referrer, class_name: "Decidim::User", optional: true
+
+      has_many :task_assignments, class_name: "Decidim::VolunteerScheduler::TaskAssignment"
+      has_many :referrals, class_name: "Decidim::User", foreign_key: "referrer_id"
+
+      validates :xp_total, numericality: { greater_than_or_equal_to: 0 }
+      validates :activity_multiplier, numericality: { greater_than: 0.0 }
+
+      # Calculates current XP threshold for this user's level
+      def current_threshold
+        Decidim::VolunteerScheduler.configuration.level_thresholds[level] || 0
+      end
+
+      # Checks if user should level up
+      def should_level_up?
+        xp_total >= current_threshold
+      end
+    end
+  end
+end
+```
+
+---
+
+## ✅ `app/models/decidim/volunteer_scheduler/task_template.rb`
+
+```ruby
+# frozen_string_literal: true
+
+module Decidim
+  module VolunteerScheduler
+    class TaskTemplate < ApplicationRecord
+      has_many :task_assignments, class_name: "Decidim::VolunteerScheduler::TaskAssignment"
+
+      enum frequency: { daily: "daily", weekly: "weekly" }
+
+      validates :title, :level_required, :xp_award, presence: true
+      validates :xp_award, numericality: { greater_than_or_equal_to: 0 }
+
+      scope :available_for_level, ->(level) {
+        where("level_required <= ?", level).where(active: true)
+      }
+
+      def self.random_pool_for(user_profile, limit: 30)
+        available_for_level(user_profile.level).order("RANDOM()").limit(limit)
+      end
+    end
+  end
+end
+```
+
+---
+
+## ✅ `app/models/decidim/volunteer_scheduler/task_assignment.rb`
+
+```ruby
+# frozen_string_literal: true
+
+module Decidim
+  module VolunteerScheduler
+    class TaskAssignment < ApplicationRecord
+      belongs_to :user, class_name: "Decidim::User"
+      belongs_to :task_template, class_name: "Decidim::VolunteerScheduler::TaskTemplate"
+      belongs_to :reviewed_by, class_name: "Decidim::User", optional: true
+
+      enum status: {
+        pending: "pending",
+        submitted: "submitted",
+        approved: "approved",
+        rejected: "rejected"
+      }
+
+      validates :status, presence: true
+
+      scope :completed, -> { where(status: :approved) }
+      scope :failed, -> { where(status: :rejected) }
+
+      def completed?
+        approved?
+      end
+
+      def failed?
+        rejected?
+      end
+    end
+  end
+end
+```
+
+---
+
+### 🔌 Configuration Reference Stub
+
+To support level thresholds and perks:
+
+```ruby
+# config/initializers/volunteer_scheduler.rb
+Decidim::VolunteerScheduler.configure do |config|
+  config.level_thresholds = {
+    1 => 0,
+    2 => 100,
+    3 => 300,
+    4 => 600,
+    5 => 1000
+  }
+
+  config.level_perks = {
+    2 => "You can now accept more tasks per day.",
+    3 => "Access to team features.",
+    4 => "Can coach new volunteers.",
+    5 => "Token withdrawal privileges unlocked."
+  }
+end
+```

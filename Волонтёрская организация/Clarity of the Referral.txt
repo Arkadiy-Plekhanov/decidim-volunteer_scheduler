@@ -1,0 +1,11 @@
+Let's make more clarity about the referral system and how it works. You can ask me questions to raise the standard of it to the higher levels of the best practice. 
+
+We have two ways on how referral system work. 
+1. Activity Multiplier is assigned to every volunteer and is increased by actions of the volunteers (Task completion, Sales). This Multiplier Is not yet thought through yet. We think to connect it with the rate of actions in a time, instead of giving an increase from an action itself. I welcome your take on that digging into the best practices. This Multiplier is then (partially transferred to the higher ref levels) - the more active are Volunteers who were referred - the greater Activity Multiplier the one who referred them gets. Every Volunteer has his own Activity Multiplier from completing assignments and selling Token and that multiplier is increased (is joined and one) by his referrals 5 levels down.
+
+Our organization makes a budget from profits made and allocates Scicent Token to the Volunteers Monthly (or Weekly, we still decide) based on their Activity Multiplier. The Activity Multiplier is competitive, meaning Volunteers with a higher Multiplier get the greater SHARE of the budget which is already set. 
+   
+2. Sales of Scicent Token by referrals and direct transfer of referral commissions to the top levels.
+
+All transactions are happening in decidim. 
+ 

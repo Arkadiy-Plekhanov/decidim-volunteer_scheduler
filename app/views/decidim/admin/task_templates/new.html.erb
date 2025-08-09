@@ -1,0 +1,101 @@
+<% add_decidim_page_title(t(".title")) %>
+
+<div class="card">
+  <div class="card-divider">
+    <h2 class="card-title">
+      <%= t(".title") %>
+    </h2>
+  </div>
+  
+  <div class="card-section">
+    <%= form_with model: @task_template, url: task_templates_path, local: true do |form| %>
+      <% if @task_template.errors.any? %>
+        <div class="callout alert">
+          <h6><%= t("errors.messages.not_saved", resource: t("activerecord.models.decidim/volunteer_scheduler/task_template.one")) %></h6>
+          <ul>
+            <% @task_template.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+      
+      <div class="row">
+        <div class="large-6 columns">
+          <div class="field">
+            <%= form.label :title, t("decidim.volunteer_scheduler.models.task_template.fields.title") %>
+            <%= form.text_field :title, required: true, maxlength: 150 %>
+          </div>
+        </div>
+        
+        <div class="large-6 columns">
+          <div class="field">
+            <%= form.label :category, t("decidim.volunteer_scheduler.models.task_template.fields.category") %>
+            <%= form.select :category, 
+                           options_for_select([
+                             ["Administration", "administration"],
+                             ["Outreach", "outreach"],
+                             ["Research", "research"],
+                             ["Social Media", "social_media"],
+                             ["Events", "events"],
+                             ["Other", "other"]
+                           ], @task_template.category),
+                           { prompt: t(".select_category") },
+                           { required: true } %>
+          </div>
+        </div>
+      </div>
+      
+      <div class="field">
+        <%= form.label :description, t("decidim.volunteer_scheduler.models.task_template.fields.description") %>
+        <%= form.text_area :description, rows: 5, required: true %>
+      </div>
+      
+      <div class="row">
+        <div class="large-4 columns">
+          <div class="field">
+            <%= form.label :xp_reward, t("decidim.volunteer_scheduler.models.task_template.fields.xp_reward") %>
+            <%= form.number_field :xp_reward, min: 1, max: 1000, required: true %>
+          </div>
+        </div>
+        
+        <div class="large-4 columns">
+          <div class="field">
+            <%= form.label :level_required, t("decidim.volunteer_scheduler.models.task_template.fields.level_required") %>
+            <%= form.number_field :level_required, min: 1, max: 10, required: true %>
+          </div>
+        </div>
+        
+        <div class="large-4 columns">
+          <div class="field">
+            <%= form.label :frequency, t("decidim.volunteer_scheduler.models.task_template.fields.frequency") %>
+            <%= form.select :frequency, 
+                           options_for_select([
+                             ["Daily", "daily"],
+                             ["Weekly", "weekly"],
+                             ["Monthly", "monthly"]
+                           ], @task_template.frequency),
+                           { prompt: t(".select_frequency") },
+                           { required: true } %>
+          </div>
+        </div>
+      </div>
+      
+      <div class="field">
+        <%= form.label :status, t("decidim.volunteer_scheduler.models.task_template.fields.status") %>
+        <%= form.select :status, 
+                       options_for_select([
+                         ["Draft", "draft"],
+                         ["Published", "published"]
+                       ], @task_template.status || "draft"),
+                       {},
+                       { required: true } %>
+      </div>
+      
+      <div class="actions">
+        <%= form.submit t(".create"), class: "button" %>
+        <%= link_to t(".cancel"), task_templates_path, class: "button hollow" %>
+      </div>
+    <% end %>
+  </div>
+</div>

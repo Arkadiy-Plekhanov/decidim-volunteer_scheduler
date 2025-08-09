@@ -1,0 +1,83 @@
+<% add_decidim_page_title(t(".title")) %>
+
+<div class="card">
+  <div class="card-divider">
+    <h2 class="card-title">
+      <%= t(".title") %>
+    </h2>
+    
+    <div class="card-title__actions">
+      <%= link_to t(".new"), new_task_template_path, class: "button tiny button--title" %>
+    </div>
+  </div>
+  
+  <div class="card-section">
+    <% if @task_templates.any? %>
+      <div class="table-list">
+        <table class="table-list__table">
+          <thead>
+            <tr>
+              <th><%= t(".title_header") %></th>
+              <th><%= t(".status") %></th>
+              <th><%= t(".level_required") %></th>
+              <th><%= t(".xp_reward") %></th>
+              <th><%= t(".category") %></th>
+              <th><%= t(".assignments_count") %></th>
+              <th><%= t(".actions") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @task_templates.each do |template| %>
+              <tr>
+                <td>
+                  <strong><%= template.title %></strong><br>
+                  <small><%= truncate(template.description, length: 100) %></small>
+                </td>
+                <td>
+                  <span class="label <%= template_status_class(template) %>">
+                    <%= t("decidim.volunteer_scheduler.admin.task_templates.status.#{template.status}") %>
+                  </span>
+                </td>
+                <td>Level <%= template.level_required %></td>
+                <td><%= template.xp_reward %> XP</td>
+                <td><%= template.category %></td>
+                <td><%= template.assignments_count %></td>
+                <td>
+                  <div class="table-list__actions">
+                    <%= link_to t(".edit"), edit_task_template_path(template), 
+                               class: "action-icon--edit", title: t(".edit") %>
+                    
+                    <% if template.draft? %>
+                      <%= link_to t(".publish"), publish_task_template_path(template), 
+                                 method: :put, class: "action-icon--publish", title: t(".publish") %>
+                    <% elsif template.published? %>
+                      <%= link_to t(".unpublish"), unpublish_task_template_path(template), 
+                                 method: :put, class: "action-icon--unpublish", title: t(".unpublish") %>
+                    <% end %>
+                    
+                    <%= link_to t(".delete"), task_template_path(template), 
+                               method: :delete, 
+                               class: "action-icon--remove", 
+                               title: t(".delete"),
+                               confirm: t(".delete_confirm") %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+      
+      <%= paginate @task_templates %>
+    <% else %>
+      <div class="empty-state">
+        <div class="empty-state__icon">
+          <i class="icon--task"></i>
+        </div>
+        <h3><%= t(".no_task_templates") %></h3>
+        <p><%= t(".no_task_templates_description") %></p>
+        <%= link_to t(".create_first_task"), new_task_template_path, class: "button" %>
+      </div>
+    <% end %>
+  </div>
+</div>

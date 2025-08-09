@@ -1,0 +1,100 @@
+Looking at your requirements and the comprehensive technical specification you've provided, I can see you want to create a single Decidim module that implements a sophisticated volunteer management system with a 5-level referral system and token-based rewards. Let me analyze your current situation and create a structured implementation plan.
+Current Situation Assessment
+You have:
+
+✅ WSL2 Ubuntu development environment set up
+✅ Decidim development app running locally at \\wsl.localhost\Ubuntu\home\scicent\projects\decidim\development_app
+✅ Comprehensive technical specification for the decidim-volunteer_scheduler module
+🎯 Goal: Create a single module for production deployment
+
+Implementation Plan for decidim-volunteer_scheduler Module
+Based on your specifications, here's the structured approach:
+Phase 1: Module Foundation Setup
+Step 1: Generate the Base Module Structure
+bashcd /home/scicent/projects/decidim/development_app
+rails generate decidim:component volunteer_scheduler
+This will create the proper Decidim component scaffolding following official patterns.
+Step 2: Core Architecture Overview
+Your module will have these key components:
+
+Task Management System
+
+Task templates (created by admins)
+Task assignments (volunteers accept tasks)
+XP and level progression system
+
+
+5-Level Referral System
+
+Unique referral codes for each volunteer
+Commission distribution (10%, 8%, 6%, 4%, 2% up the chain)
+Activity multiplier boosts
+
+
+Scicent Token Integration
+
+Token rewards for completed tasks
+Commission tracking from referral sales
+Activity multiplier calculations
+
+
+Volunteer Profile System
+
+Level-based capabilities (1-3 levels)
+Team creation and mentoring features
+Achievement tracking
+
+
+
+Phase 2: Database Schema Implementation
+I'll help you implement the five core tables:Decidim Volunteer Scheduler - Database MigrationsCode # db/migrate/001_create_decidim_volunteer_scheduler_task_templates.rb
+class CreateDecidimVolunteerSchedulerTaskTemplates < ActiveRecord::Migration[6.1]
+  def change
+    create_table :decidim_volunteer_scheduler_task_templates do |t|
+      t.referencePhase 3: Core Models Implementation
+Now let's create the core models with the business logic:Volunteer Profile Model - Core Business LogicCode # app/models/decidim/volunteer_scheduler/volunteer_profile.rb
+module Decidim
+  module VolunteerScheduler
+    class VolunteerProfile < ApplicationRecord
+      self.table_name = "decidim_volunteer_scheduler_volunteer_profiles"
+      
+      belongs_to :Phase 4: 5-Level Referral System Implementation5-Level Referral System ModelsCode # app/models/decidim/volunteer_scheduler/referral.rb
+module Decidim
+  module VolunteerScheduler
+    class Referral < ApplicationRecord
+      self.table_name = "decidim_volunteer_scheduler_referrals"
+      
+      belongs_to :referrer, class_name: "DecRetryRLContinueEdit5-Level Referral System ModelsCode ∙ Version 2       def self.monthly_summary(user, month = Date.current.beginning_of_month)
+        where(user: user)
+          .where(created_at: month..month.end_of_month)
+          .successful
+          .group(:transaction_type)
+          .sum(:amount)
+      enPhase 5: Task Management SystemTask Management System ModelsCode # app/models/decidim/volunteer_scheduler/task_template.rb
+module Decidim
+  module VolunteerScheduler
+    class TaskTemplate < ApplicationRecord
+      include Decidim::Resourceable
+      include Decidim::HasComponent
+      include Decidim::Traceable
+ Phase 6: Component Registration and User ExtensionsComponent Registration and User ExtensionsCode # lib/decidim/volunteer_scheduler/component.rb
+require "decidim/components/namer"
+
+Decidim.register_component(:volunteer_scheduler) do |component|
+  component.engine = Decidim::VolunteerScheduler::Engine
+  component.admin_engine = Decidim::VolunteerSRetryRLContinueEditComponent Registration and User ExtensionsCode ∙ Version 2         # Create referral chain if referrer exists
+        if referrer
+          Decidim::VolunteerScheduler::Referral.create_referral_chain(referrer, self)
+        end
+        
+        profile
+      end
+      
+      def extract_referral_code
+       Phase 7: Background Jobs for Referral Commission and Activity MultiplierBackground Jobs for Referral SystemCode # app/jobs/decidim/volunteer_scheduler/application_job.rb
+module Decidim
+  module VolunteerScheduler
+    class ApplicationJob < ActiveJob::Base
+      queue_as :volunteer_scheduler
+      
+      retry_on StandardError, wait: :exponentially_longer, attePhase 8: Controllers and RoutesControllers and Routes ConfigurationCode 
