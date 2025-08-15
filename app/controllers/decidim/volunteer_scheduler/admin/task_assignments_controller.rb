@@ -8,13 +8,7 @@ module Decidim
         before_action :set_task_assignment, only: [:show, :update]
 
         def index
-          @task_assignments = TaskAssignment.joins(:task_template)
-                                           .where(decidim_volunteer_scheduler_task_templates: { organization: current_organization })
-                                           .includes(:task_template, :assignee)
-                                           .order(submitted_at: :desc, assigned_at: :desc)
-                                           .page(params[:page])
-
-          @task_assignments = @task_assignments.where(status: params[:status]) if params[:status].present?
+          @task_assignments = paginated_collection
         end
 
         def show
@@ -66,6 +60,18 @@ module Decidim
         end
 
         private
+
+        def paginated_collection
+          @paginated_collection ||= begin
+            assignments = TaskAssignment.joins(:task_template)
+                                       .where(decidim_volunteer_scheduler_task_templates: { organization: current_organization })
+                                       .includes(:task_template, :assignee)
+                                       .order(submitted_at: :desc, assigned_at: :desc)
+            
+            assignments = assignments.where(status: params[:status]) if params[:status].present?
+            assignments.page(params[:page])
+          end
+        end
 
         def set_task_assignment
           @task_assignment = TaskAssignment.joins(:task_template)

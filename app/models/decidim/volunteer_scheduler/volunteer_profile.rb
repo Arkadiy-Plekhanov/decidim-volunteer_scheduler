@@ -9,7 +9,8 @@ module Decidim
 
       belongs_to :user, class_name: "Decidim::User"
       belongs_to :organization, class_name: "Decidim::Organization"
-      belongs_to :component, class_name: "Decidim::Component", optional: true  # For campaign-specific tracking
+      # Remove component association - this is organization-level, not component-level
+      # belongs_to :component, class_name: "Decidim::Component", optional: true
       belongs_to :referrer, class_name: "Decidim::VolunteerScheduler::VolunteerProfile", optional: true
 
       has_many :task_assignments, 
@@ -53,8 +54,8 @@ module Decidim
       end
 
       def level_thresholds
-        # Use component settings if available, otherwise use default thresholds
-        thresholds_setting = component&.settings&.level_thresholds || "100,500,1000,2500,5000"
+        # Organization-level default thresholds (no component settings)
+        thresholds_setting = "100,500,1000,2500,5000"
         thresholds_setting.split(",").map(&:to_i)
       end
 
@@ -125,7 +126,8 @@ module Decidim
       private
       
       def daily_task_limit
-        component&.settings&.max_daily_tasks || 5
+        # Organization-level default limit (no component settings)
+        5
       end
 
       def generate_referral_code

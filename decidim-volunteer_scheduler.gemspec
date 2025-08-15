@@ -34,16 +34,6 @@ Gem::Specification.new do |s|
   # Core Decidim dependencies
   s.add_dependency "decidim-core", Decidim::VolunteerScheduler::DECIDIM_VERSION
   s.add_dependency "decidim-admin", Decidim::VolunteerScheduler::DECIDIM_VERSION
-  s.add_dependency "decidim-api", Decidim::VolunteerScheduler::DECIDIM_VERSION
-  
-  # Background processing
-  s.add_dependency "sidekiq", ">= 7.0"
-  s.add_dependency "sidekiq-cron", ">= 1.9"
-  
-  # Development dependencies
-  s.add_development_dependency "decidim", Decidim::VolunteerScheduler::DECIDIM_VERSION
-  s.add_development_dependency "decidim-dev", Decidim::VolunteerScheduler::DECIDIM_VERSION
-  s.add_development_dependency "decidim-participatory_processes", Decidim::VolunteerScheduler::DECIDIM_VERSION
   
   # Testing
   s.add_development_dependency "factory_bot_rails", "~> 6.2"

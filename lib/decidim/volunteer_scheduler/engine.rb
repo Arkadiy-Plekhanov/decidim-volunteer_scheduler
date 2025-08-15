@@ -32,11 +32,13 @@ module Decidim
         end
         
         get "my_dashboard", to: "dashboard#index"
+
       end
 
       initializer "decidim_volunteer_scheduler.assets" do |app|
         app.config.assets.precompile += %w[decidim_volunteer_scheduler_manifest.js] if app.config.respond_to?(:assets)
       end
+      
 
       initializer "decidim_volunteer_scheduler.add_cells_view_paths" do
         Cell::ViewModel.view_paths << File.expand_path("#{Decidim::VolunteerScheduler::Engine.root}/app/cells")
@@ -80,6 +82,8 @@ module Decidim
       # Register icons
       initializer "decidim_volunteer_scheduler.register_icons", after: "decidim_core.register_icons" do
         Decidim.icons.register(name: "user-heart-line", icon: "user-heart-line", category: "system", description: "Volunteer user icon", engine: :volunteer_scheduler)
+        Decidim.icons.register(name: "user-check-line", icon: "user-check-line", category: "system", description: "Task review icon", engine: :volunteer_scheduler)
+        Decidim.icons.register(name: "list-check", icon: "list-check", category: "system", description: "Task list icon", engine: :volunteer_scheduler)
       end
 
       # Register content blocks
@@ -90,6 +94,11 @@ module Decidim
           content_block.default!
         end
       end
+
+      # Note: Engine mounting should be done in the main application's routes.rb:
+      # Rails.application.routes.draw do
+      #   mount Decidim::VolunteerScheduler::Engine => "/volunteer_scheduler"
+      # end
 
       # Register menus
       initializer "decidim_volunteer_scheduler.menu" do
@@ -110,11 +119,13 @@ module Decidim
                         position: 2.5,
                         if: proc { current_user&.confirmed? }
         end
+
       end
 
       # Extend Decidim::User with volunteer profile functionality
       config.to_prepare do
-        Decidim::User.include Decidim::VolunteerScheduler::UserExtension
+        # User extension
+        Decidim::User.include Decidim::VolunteerScheduler::UserExtension if Decidim::User.included_modules.exclude?(Decidim::VolunteerScheduler::UserExtension)
       end
     end
   end

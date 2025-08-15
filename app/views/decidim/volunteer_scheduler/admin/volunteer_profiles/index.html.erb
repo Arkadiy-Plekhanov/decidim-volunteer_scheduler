@@ -1,4 +1,5 @@
 <% add_decidim_page_title(t(".title")) %>
+<%= render "decidim/volunteer_scheduler/admin/shared/nav_menu" %>
 
 <div class="card">
   <div class="card-divider">
@@ -9,10 +10,10 @@
   
   <div class="card-section">
     <div class="filters">
-      <%= link_to t(".all_levels"), volunteer_profiles_path, 
+      <%= link_to t(".all_levels"), decidim_admin_volunteer_scheduler.volunteer_profiles_path, 
                  class: "button hollow tiny #{'secondary' if params[:level].blank?}" %>
       <% (1..5).each do |level| %>
-        <%= link_to "Level #{level}", volunteer_profiles_path(level: level), 
+        <%= link_to "Level #{level}", decidim_admin_volunteer_scheduler.volunteer_profiles_path(level: level), 
                    class: "button hollow tiny #{'secondary' if params[:level] == level.to_s}" %>
       <% end %>
     </div>
@@ -60,7 +61,7 @@
                 </td>
                 <td>
                   <div class="table-list__actions">
-                    <%= link_to t(".view"), volunteer_profile_path(profile), 
+                    <%= link_to t(".view"), decidim_admin_volunteer_scheduler.volunteer_profile_path(profile), 
                                class: "action-icon--view", title: t(".view") %>
                   </div>
                 </td>

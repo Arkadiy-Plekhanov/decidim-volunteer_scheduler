@@ -41,8 +41,13 @@ module Decidim
 
       initializer "decidim_volunteer_scheduler.admin_menu" do
         Decidim.menu :admin_menu do |menu|
-          menu.item I18n.t("menu.volunteer_scheduler", scope: "decidim.volunteer_scheduler.admin"),
-                    decidim_admin_volunteer_scheduler.root_path
+          menu.add_item :volunteer_scheduler,
+                        I18n.t("decidim.volunteer_scheduler.admin.menu.volunteer_scheduler"),
+                        decidim_admin_volunteer_scheduler.root_path,
+                        icon_name: "user-heart-line",
+                        position: 7.5,
+                        active: :inclusive,
+                        if: proc { current_user&.admin? }
         end
       end
 

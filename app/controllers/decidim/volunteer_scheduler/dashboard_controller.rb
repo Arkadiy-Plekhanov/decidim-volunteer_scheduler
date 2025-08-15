@@ -7,6 +7,13 @@ module Decidim
       def index
         # Skip permission check for now to avoid routing issues
         # enforce_permission_to :read, :dashboard
+        
+        # Ensure user has volunteer profile
+        unless current_volunteer_profile
+          redirect_to decidim.root_path, alert: "Please complete your profile first."
+          return
+        end
+        
         load_dashboard_data
       end
       
@@ -40,9 +47,11 @@ module Decidim
         return {} unless current_volunteer_profile
         
         {
-          total_referrals: 0,  # Placeholder - can be implemented later
-          active_referrals: 0, # Placeholder - can be implemented later  
-          total_commission: 0  # Placeholder - can be implemented later
+          total_referrals: current_volunteer_profile.total_referrals_count,
+          active_referrals: current_volunteer_profile.active_referrals_count,
+          total_commission: current_volunteer_profile.scicent_transactions
+                                                   .where(transaction_type: 'referral_commission')
+                                                   .sum(:amount)
         }
       end
     end

@@ -1,0 +1,155 @@
+<!-- Volunteer Profile Card following Decidim patterns with better large screen layout -->
+<section class="volunteer-profile mb-8">
+  <!-- Container to keep content centered on large screens -->
+  <div class="max-w-4xl mx-auto">
+    
+    <!-- Profile Header Card -->
+    <div class="card card--full">
+      <div class="card__header">
+        <div class="flex items-center justify-between p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <%= icon "user-smile-line", class: "w-12 h-12 text-secondary" %>
+            </div>
+            <div class="ml-4">
+              <h2 class="text-xl font-semibold text-secondary"><%= model.user.name %></h2>
+              <p class="text-sm text-gray-2">@<%= model.user.nickname %></p>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-2xl font-bold text-success">Level <%= model.level %></div>
+            <div class="text-sm text-gray-2">XP: <%= number_with_delimiter(model.total_xp) %></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- XP Progress Bar -->
+      <div class="card__content px-6 pb-6">
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-sm font-medium text-gray-2">
+              Level <%= model.level %> Progress
+            </span>
+            <span class="text-xs text-gray-3">
+              <%= current_level_xp %>/<%= current_level_xp + next_level_xp_needed %> XP
+            </span>
+          </div>
+          
+          <div class="progress-bar bg-gray-1 h-3 rounded-full overflow-hidden">
+            <div class="progress-meter bg-success h-full rounded-full transition-all duration-500" 
+                 style="width: <%= progress_percentage %>%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Section using Decidim's statistic pattern with better grid -->
+    <div class="mt-6">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <% stats_data.each do |stat| %>
+          <div class="statistic bg-white rounded-lg border border-gray-1 p-4" data-statistic>
+            <div class="statistic__header mb-3">
+              <div class="statistic__metric">
+                <div class="statistic__title text-sm font-medium text-gray-2 mb-1" title="<%= stat[:label] %>">
+                  <%= stat[:label] %>
+                </div>
+              </div>
+              <div class="statistic__icon flex justify-end">
+                <%= icon stat[:icon], class: "w-5 h-5 text-primary fill-current" %>
+              </div>
+            </div>
+            <div class="statistic__number text-2xl font-bold text-secondary">
+              <%= stat[:value] %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Referral Link Section with improved styling -->
+    <div class="card card--full mt-6">
+      <div class="card__content p-6">
+        <div class="text-center">
+          <h4 class="text-lg font-semibold text-secondary mb-4">Share Your Referral Link</h4>
+          <p class="text-sm text-gray-2 mb-4">Invite friends to join and earn commission on their activities</p>
+          
+          <div class="max-w-md mx-auto">
+            <div class="flex items-center space-x-2">
+              <input type="text" 
+                     value="<%= referral_url(model) %>" 
+                     readonly 
+                     class="form__input flex-1 text-xs font-mono bg-gray-1 text-gray-2 text-center" 
+                     id="referral-link">
+              <button onclick="copyReferralLink()" 
+                      class="button button--sm button--secondary flex-shrink-0" 
+                      type="button">
+                <%= icon "file-copy-line", class: "w-4 h-4 mr-1" %>
+                Copy
+              </button>
+            </div>
+            
+            <!-- Quick share buttons -->
+            <div class="flex justify-center space-x-2 mt-4">
+              <button onclick="shareViaTwitter()" 
+                      class="button button--sm button--ghost" 
+                      type="button"
+                      title="Share on Twitter">
+                <%= icon "share-line", class: "w-4 h-4" %>
+                Tweet
+              </button>
+              <button onclick="shareViaEmail()" 
+                      class="button button--sm button--ghost" 
+                      type="button"
+                      title="Share via Email">
+                <%= icon "mail-send-line", class: "w-4 h-4" %>
+                Email
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+<script>
+  function copyReferralLink() {
+    const input = document.getElementById('referral-link');
+    input.select();
+    document.execCommand('copy');
+    
+    // Visual feedback
+    const button = event.target.closest('button');
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<%= icon "check-line", class: "w-4 h-4 mr-1" %> Copied!';
+    button.classList.add('button--success');
+    
+    setTimeout(() => {
+      button.innerHTML = originalHTML;
+      button.classList.remove('button--success');
+    }, 2000);
+  }
+  
+  function shareViaTwitter() {
+    const url = document.getElementById('referral-link').value;
+    const text = "Join me in making a difference! Volunteer with us and earn rewards for your contributions.";
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    window.open(twitterUrl, '_blank');
+  }
+  
+  function shareViaEmail() {
+    const url = document.getElementById('referral-link').value;
+    const subject = "Join Our Volunteer Community";
+    const body = `Hi there!
+
+I wanted to invite you to join our volunteer community. It's a great way to make a positive impact while earning rewards for your contributions.
+
+Use my referral link to get started: ${url}
+
+Looking forward to volunteering together!`;
+    
+    const emailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = emailUrl;
+  }
+</script>

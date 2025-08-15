@@ -1,26 +1,32 @@
-<div class="xp-progress">
-  <div class="progress-info">
-    <span class="current-level">
-      <%= t("decidim.volunteer_scheduler.dashboard.level", level: current_level) %>
-    </span>
-    <span class="next-level-info">
-      <% if next_level_xp %>
-        <%= t("decidim.volunteer_scheduler.dashboard.xp_to_next_level", xp: next_level_xp) %>
+<!-- XP Progress using Decidim patterns -->
+<div class="mb-4">
+  <div class="flex justify-between items-center mb-2">
+    <div class="flex items-center">
+      <%= icon "award-line", class: "w-5 h-5 mr-2 text-yellow-500" %>
+      <span class="font-semibold">
+        <%= t(".level", level: current_level, default: "Level #{current_level}") %>
+      </span>
+    </div>
+    <span class="text-sm opacity-75">
+      <% if next_level_xp && next_level_xp > 0 %>
+        <%= t(".xp_to_next", xp: next_level_xp, default: "#{next_level_xp} XP to next level") %>
       <% else %>
-        <%= t("decidim.volunteer_scheduler.dashboard.max_level_reached") %>
+        <%= t(".max_level", default: "Max level reached!") %>
       <% end %>
     </span>
   </div>
   
-  <div class="progress" role="progressbar" tabindex="0" aria-valuenow="<%= progress_percentage %>" aria-valuemin="0" aria-valuemax="100">
-    <div class="progress-meter" style="width: <%= progress_percentage %>%">
-      <p class="progress-meter-text"><%= progress_percentage %>%</p>
-    </div>
+  <!-- Progress Bar using Decidim progress-bar component -->
+  <div class="progress-bar">
+    <div class="progress-bar__meter bg-gradient-to-r from-yellow-400 to-orange-500" 
+         style="width: <%= progress_percentage %>%"></div>
   </div>
   
-  <div class="xp-info">
-    <small>
-      <%= t("decidim.volunteer_scheduler.dashboard.total_xp_earned", xp: total_xp) %>
-    </small>
+  <div class="flex justify-between items-center mt-2 text-xs opacity-75">
+    <span>
+      <%= icon "star-line", class: "w-3 h-3 mr-1" %>
+      <%= t(".total_xp", xp: total_xp, default: "#{total_xp} XP earned") %>
+    </span>
+    <span><%= progress_percentage.round %>%</span>
   </div>
 </div>

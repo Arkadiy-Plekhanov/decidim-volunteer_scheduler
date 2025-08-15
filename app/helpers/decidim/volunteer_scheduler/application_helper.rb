@@ -45,6 +45,40 @@ module Decidim
           t("decidim.volunteer_scheduler.task_assignments.due_in_days", days: days)
         end
       end
+
+      def assignment_status_color(assignment)
+        case assignment.status.to_s
+        when "pending"
+          "bg-yellow-100 text-yellow-800"
+        when "in_progress"
+          "bg-blue-100 text-blue-800"
+        when "submitted"
+          "bg-purple-100 text-purple-800"
+        when "approved", "completed"
+          "bg-green-100 text-green-800"
+        when "rejected"
+          "bg-red-100 text-red-800"
+        else
+          "bg-gray-100 text-gray-800"
+        end
+      end
+
+      def assignment_status_icon(assignment)
+        case assignment.status.to_s
+        when "pending"
+          "time-line"
+        when "in_progress"
+          "loader-3-line"
+        when "submitted"
+          "mail-send-line"
+        when "approved", "completed"
+          "check-line"
+        when "rejected"
+          "close-line"
+        else
+          "question-line"
+        end
+      end
     end
   end
 end

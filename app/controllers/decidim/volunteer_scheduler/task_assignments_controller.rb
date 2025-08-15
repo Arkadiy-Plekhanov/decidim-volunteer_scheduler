@@ -5,7 +5,7 @@ module Decidim
     # Controller for managing task assignments
     class TaskAssignmentsController < ApplicationController
       before_action :set_task_assignment, only: [:show, :update]
-      before_action :set_task_template, only: [:create]
+      before_action :set_task_template, only: [:create, :accept]
 
       def index
         enforce_permission_to :read, :task_assignment
@@ -21,8 +21,11 @@ module Decidim
       end
 
       def create
+        # Proper authorization for gem distribution
         enforce_permission_to :create, :task_assignment
         
+        return redirect_with_error("No volunteer profile found") unless current_volunteer_profile
+        return redirect_with_error("No task template found") unless @task_template
         return redirect_with_error unless can_assign_task?
         
         @task_assignment = TaskAssignment.new(
@@ -34,8 +37,8 @@ module Decidim
         )
         
         if @task_assignment.save
-          redirect_to decidim_volunteer_scheduler.task_assignment_path(@task_assignment), 
-                     notice: t(".success")
+          redirect_to task_assignment_path(@task_assignment), 
+                     notice: "Task accepted successfully!"
         else
           redirect_with_error(@task_assignment.errors.full_messages.first)
         end
@@ -64,7 +67,9 @@ module Decidim
       end
 
       def set_task_template
-        @task_template = TaskTemplate.find(params[:task_template_id])
+        # Handle both member route (:id) and nested route (:task_template_id)
+        template_id = params[:id] || params[:task_template_id]
+        @task_template = TaskTemplate.find(template_id)
       end
 
       def can_assign_task?
@@ -94,16 +99,16 @@ module Decidim
 
       def submit_assignment
         if @task_assignment.submit_work!(params[:submission_notes])
-          redirect_to decidim_volunteer_scheduler.task_assignment_path(@task_assignment),
-                     notice: t(".submitted_success")
+          redirect_to task_assignment_path(@task_assignment),
+                     notice: "Task submitted successfully!"
         else
           redirect_with_error("Failed to submit assignment")
         end
       end
 
       def redirect_with_error(message = nil)
-        message ||= t(".error")
-        redirect_to decidim_volunteer_scheduler.root_path, alert: message
+        message ||= "An error occurred"
+        redirect_to root_path, alert: message
       end
     end
   end

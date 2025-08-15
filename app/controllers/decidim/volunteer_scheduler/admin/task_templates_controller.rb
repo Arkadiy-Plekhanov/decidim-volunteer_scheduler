@@ -8,9 +8,7 @@ module Decidim
         before_action :set_task_template, only: [:show, :edit, :update, :destroy, :publish, :unpublish]
 
         def index
-          @task_templates = TaskTemplatesQuery.new(organization: current_organization)
-                                             .for_admin_list
-                                             .page(params[:page])
+          @task_templates = paginated_collection
         end
 
         def show
@@ -58,6 +56,12 @@ module Decidim
         end
 
         private
+
+        def paginated_collection
+          @paginated_collection ||= TaskTemplate.where(organization: current_organization)
+                                               .order(created_at: :desc)
+                                               .page(params[:page])
+        end
 
         def set_task_template
           @task_template = TaskTemplate.where(organization: current_organization).find(params[:id])

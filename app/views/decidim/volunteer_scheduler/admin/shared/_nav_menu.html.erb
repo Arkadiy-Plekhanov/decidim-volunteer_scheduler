@@ -1,0 +1,21 @@
+<div class="secondary-nav">
+  <div class="secondary-nav__actions">
+    <%= link_to decidim_admin_volunteer_scheduler.task_templates_path, 
+               class: "button button--sc #{'button--secondary' if controller_name == 'task_templates'}" do %>
+      <%= icon "list-check", class: "icon--small" %>
+      <%= t("decidim.volunteer_scheduler.admin.task_templates.title") %>
+    <% end %>
+    
+    <%= link_to decidim_admin_volunteer_scheduler.task_assignments_path, 
+               class: "button button--sc #{'button--secondary' if controller_name == 'task_assignments'}" do %>
+      <%= icon "user-check-line", class: "icon--small" %>
+      <%= t("decidim.volunteer_scheduler.admin.task_assignments.title") %>
+    <% end %>
+    
+    <%= link_to decidim_admin_volunteer_scheduler.volunteer_profiles_path, 
+               class: "button button--sc #{'button--secondary' if controller_name == 'volunteer_profiles'}" do %>
+      <%= icon "user-heart-line", class: "icon--small" %>
+      <%= t("decidim.volunteer_scheduler.admin.volunteer_profiles.title") %>
+    <% end %>
+  </div>
+</div>

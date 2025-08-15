@@ -4,13 +4,22 @@ module Decidim
   module VolunteerScheduler
     # Model representing a task template that volunteers can accept and complete
     class TaskTemplate < ApplicationRecord
-      include Decidim::Resourceable
       include Decidim::Traceable
       include Decidim::Loggable
       
       # Organization-level architecture - templates belong to organizations
       belongs_to :organization, class_name: "Decidim::Organization"
-      belongs_to :component, class_name: "Decidim::Component", optional: true
+      
+      # Required methods for Decidim modules
+      def component
+        nil # Organization-level resource, no component
+      end
+      
+      def participatory_space
+        organization # Use organization as the participatory space
+      end
+      # Remove component association - this is organization-level, not component-level
+      # belongs_to :component, class_name: "Decidim::Component", optional: true
 
       has_many :task_assignments, dependent: :destroy, inverse_of: :task_template
 

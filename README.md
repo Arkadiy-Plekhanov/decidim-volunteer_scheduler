@@ -40,15 +40,17 @@ A comprehensive volunteer management module for Decidim organizations implementi
 Add this line to your application's Gemfile:
 
 ```ruby
-gem "decidim-volunteer_scheduler", github: "your-org/decidim-module-volunteer_scheduler"
+gem "decidim-volunteer_scheduler", github: "scicent/decidim-volunteer_scheduler"
 ```
 
 And then execute:
 ```bash
 bundle install
-bundle exec rails decidim_volunteer_scheduler:install:migrations
+bundle exec rails decidim:volunteer_scheduler:install:migrations
 bundle exec rails db:migrate
 ```
+
+**That's it!** The module automatically registers itself with Decidim - no manual route configuration needed.
 
 ## Configuration
 

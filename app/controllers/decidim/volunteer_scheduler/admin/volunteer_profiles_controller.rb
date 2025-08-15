@@ -8,12 +8,7 @@ module Decidim
         before_action :set_volunteer_profile, only: [:show]
 
         def index
-          @volunteer_profiles = VolunteerProfile.where(organization: current_organization)
-                                              .includes(:user)
-                                              .order(total_xp: :desc)
-                                              .page(params[:page])
-
-          @volunteer_profiles = @volunteer_profiles.by_level(params[:level]) if params[:level].present?
+          @volunteer_profiles = paginated_collection
         end
 
         def show
@@ -30,6 +25,17 @@ module Decidim
         end
 
         private
+
+        def paginated_collection
+          @paginated_collection ||= begin
+            profiles = VolunteerProfile.where(organization: current_organization)
+                                     .includes(:user)
+                                     .order(total_xp: :desc)
+            
+            profiles = profiles.by_level(params[:level]) if params[:level].present?
+            profiles.page(params[:page])
+          end
+        end
 
         def set_volunteer_profile
           @volunteer_profile = VolunteerProfile.where(organization: current_organization).find(params[:id])

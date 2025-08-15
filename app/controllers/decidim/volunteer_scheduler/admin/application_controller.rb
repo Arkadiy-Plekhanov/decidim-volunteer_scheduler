@@ -5,14 +5,22 @@ module Decidim
     module Admin
       # Base controller for admin interface
       class ApplicationController < Decidim::Admin::ApplicationController
-        include Decidim::VolunteerScheduler::Admin::ApplicationHelper
+        helper_method :collection
         
-        layout "decidim/admin/users"
+        before_action :ensure_admin_user
 
         private
 
-        def ensure_admin_permissions
-          enforce_permission_to :manage, :admin_dashboard
+        def ensure_admin_user
+          redirect_to decidim.new_user_session_path unless current_user&.admin?
+        end
+
+        def collection
+          @collection ||= paginated_collection
+        end
+
+        def paginated_collection
+          raise NotImplementedError, "Subclasses must implement #paginated_collection"
         end
       end
     end

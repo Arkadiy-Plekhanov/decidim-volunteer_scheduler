@@ -8,8 +8,8 @@ module Decidim
       include Decidim::Traceable
       include Decidim::Loggable
 
-      # Organization-level assignments - component is optional
-      belongs_to :decidim_component, class_name: "Decidim::Component", optional: true
+      # Organization-level assignments - no component association needed
+      # belongs_to :decidim_component, class_name: "Decidim::Component", optional: true
       belongs_to :task_template, class_name: "Decidim::VolunteerScheduler::TaskTemplate", counter_cache: :task_assignments_count
       belongs_to :assignee, class_name: "Decidim::VolunteerScheduler::VolunteerProfile"
       belongs_to :reviewer, class_name: "Decidim::User", optional: true
@@ -120,8 +120,8 @@ module Decidim
 
       def set_defaults
         self.assigned_at ||= Time.current
-        # Use task template's component settings if available, otherwise default to 7 days
-        deadline_days = task_template.component&.settings&.task_deadline_days || 7
+        # Use organization-level default deadline (no component settings)
+        deadline_days = 7
         self.due_date ||= assigned_at + deadline_days.days
       end
 
@@ -130,7 +130,9 @@ module Decidim
         when "submitted"
           send_submission_notification
         when "approved"
-          assignee.update(last_activity_at: Time.current)
+          # Award XP and update activity when task is approved
+          assignee.add_xp(task_template.xp_reward)
+          send_approval_notification
         end
       end
 
@@ -162,13 +164,8 @@ module Decidim
       end
 
       def component_admins
-        # Organization-level templates use organization admins
-        # Component-level templates use component admins
-        if task_template.component.present?
-          task_template.component.participatory_space.admins
-        else
-          task_template.organization.admins
-        end
+        # Organization-level operation - use organization admins
+        task_template.organization.admins
       end
       
       

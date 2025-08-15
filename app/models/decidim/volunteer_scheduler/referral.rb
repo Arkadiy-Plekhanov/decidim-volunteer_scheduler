@@ -31,7 +31,7 @@ module Decidim
             referrer: referrer_profile,
             referred: referred_profile,
             level: 1,
-            commission_rate: get_commission_rate(1, referrer_profile.component)
+            commission_rate: get_commission_rate(1)
           )
           
           # Create chain referrals up to level 5
@@ -43,7 +43,7 @@ module Decidim
               referrer: current_referrer.referrer,
               referred: referred_profile,
               level: level,
-              commission_rate: get_commission_rate(level, referrer_profile.component)
+              commission_rate: get_commission_rate(level)
             )
             
             current_referrer = current_referrer.referrer
@@ -52,21 +52,9 @@ module Decidim
       end
 
       def self.get_commission_rate(level, component = nil)
-        # Use component settings if available, otherwise use default rates
+        # Use organization-level default rates (no component settings)
         default_rates = { 1 => 0.10, 2 => 0.08, 3 => 0.06, 4 => 0.04, 5 => 0.02 }
-        
-        if component&.settings
-          case level
-          when 1 then component.settings.referral_commission_l1 || default_rates[1]
-          when 2 then component.settings.referral_commission_l2 || default_rates[2]
-          when 3 then component.settings.referral_commission_l3 || default_rates[3]
-          when 4 then component.settings.referral_commission_l4 || default_rates[4]
-          when 5 then component.settings.referral_commission_l5 || default_rates[5]
-          else 0.0
-          end
-        else
-          default_rates[level] || 0.0
-        end
+        default_rates[level] || 0.0
       end
 
       def calculate_commission(sale_amount)

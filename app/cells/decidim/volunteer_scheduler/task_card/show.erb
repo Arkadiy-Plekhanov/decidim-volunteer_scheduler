@@ -1,25 +1,38 @@
-<div class="task-card card">
-  <div class="card-section">
-    <h6><%= task_template.title %></h6>
-    <p><%= truncate(task_template.description, length: 120) %></p>
-    
-    <div class="task-metadata">
-      <small>
-        <strong><%= t("decidim.volunteer_scheduler.task_templates.xp_reward", xp: task_template.xp_reward) %></strong> |
-        <%= t("decidim.volunteer_scheduler.task_templates.level_required", level: task_template.level_required) %>
-      </small>
+<div class="card card--list">
+  <div class="card__content">
+    <!-- Header with title -->
+    <div class="py-4 space-y-2">
+      <h3 class="text-lg text-secondary font-semibold">
+        <%= task_template.title %>
+      </h3>
+      
+      <!-- Basic metadata without complex routing -->
+      <div class="text-sm text-gray-2">
+        <span>XP: <%= task_template.xp_reward %></span> • 
+        <span>Level <%= task_template.level_required %>+</span> • 
+        <span><%= estimated_time %></span>
+      </div>
     </div>
     
-    <% if can_accept? %>
-      <%= form_with url: accept_task_path, method: :post, local: true do |form| %>
-        <%= form.submit t("decidim.volunteer_scheduler.task_assignments.accept"), 
-                       class: "button small expanded",
-                       confirm: t("decidim.volunteer_scheduler.task_assignments.accept_confirm") %>
+    <!-- Description -->
+    <div class="py-2">
+      <p class="text-gray-2 text-sm leading-relaxed">
+        <%= truncate(task_template.description, length: 150) %>
+      </p>
+    </div>
+    
+    <!-- Action section - this might have been the issue -->
+    <div class="pt-4 border-t border-gray-1">
+      <% if can_accept? %>
+        <%= link_to "Accept Task", accept_task_path, 
+                   method: :post, 
+                   class: "button button--sm button--secondary w-full",
+                   data: { confirm: "Are you sure you want to accept this task?" } %>
+      <% else %>
+        <div class="text-center py-2 px-4 bg-gray-1 rounded text-sm text-gray-2">
+          Level requirement not met
+        </div>
       <% end %>
-    <% else %>
-      <div class="callout warning small">
-        <%= t("decidim.volunteer_scheduler.task_assignments.cannot_accept") %>
-      </div>
-    <% end %>
+    </div>
   </div>
 </div>

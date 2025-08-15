@@ -1,1 +1,67 @@
-/* css for decidim_volunteer_scheduler */
+/* Volunteer Scheduler Styles */
+
+// Use Decidim's existing classes and enhance them minimally
+
+// Volunteer Dashboard specific enhancements
+.volunteer-dashboard {
+  // Profile card with gradient background
+  .profile-card {
+    background: var(--primary-gradient, linear-gradient(135deg, #ef604d 0%, #f77a52 100%));
+    color: white;
+    
+    .card-title {
+      color: white;
+    }
+    
+    p, strong {
+      color: rgba(255, 255, 255, 0.95);
+    }
+  }
+  
+  // Enhanced referral section
+  .referral-section {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 1rem;
+    
+    .input-group-field {
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.9);
+    }
+  }
+}
+
+// Task Cards with minimal enhancement
+.task-card {
+  border-left: 4px solid var(--primary, #ef604d);
+  transition: box-shadow 0.2s ease;
+  
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .task-metadata {
+    background-color: var(--light-gray, #f1f1f1);
+    padding: 0.75rem;
+    margin: 0.75rem -1rem -1rem -1rem;
+    
+    small {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      color: var(--dark-gray, #666);
+    }
+  }
+}
+
+// Animation for new content
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
