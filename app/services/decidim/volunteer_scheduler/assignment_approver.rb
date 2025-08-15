@@ -35,7 +35,8 @@ module Decidim
       def approve_assignment
         ActiveRecord::Base.transaction do
           @assignment.approve!(@reviewer, @notes)
-          process_xp_reward
+          # XP reward and transaction creation is handled by approve! method
+          # process_xp_reward # REMOVED - duplicate logic
           process_referral_commissions
           schedule_activity_multiplier_update
           
@@ -44,6 +45,7 @@ module Decidim
         end
       rescue StandardError => e
         Rails.logger.error "Failed to approve assignment #{@assignment.id}: #{e.message}"
+        Rails.logger.error "Error details: #{e.backtrace.first(5).join("\n")}"
         false
       end
 

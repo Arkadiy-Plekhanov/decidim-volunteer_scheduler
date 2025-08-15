@@ -23,7 +23,8 @@
     </div>
     
     <% if @task_assignments.any? %>
-      <%= form_with url: bulk_approve_task_assignments_path, method: :patch, local: true, id: "bulk_actions_form" do |form| %>
+      <!-- Bulk Actions Form -->
+      <%= form_with url: decidim_admin_volunteer_scheduler.bulk_approve_task_assignments_path, method: :patch, local: true, id: "bulk_actions_form" do |form| %>
         <div class="table-list">
           <div class="bulk-actions">
             <div class="bulk-actions__group">
@@ -31,12 +32,17 @@
               <label for="select_all"><%= t(".select_all") %></label>
             </div>
             <div class="bulk-actions__group">
-              <%= form.submit t(".bulk_approve"), class: "button tiny success", name: "bulk_action", value: "approve" %>
-              <%= form.submit t(".bulk_reject"), class: "button tiny alert", name: "bulk_action", value: "reject" %>
+              <%= form.submit t(".bulk_approve"), class: "button tiny success", name: "bulk_action", value: "approve", id: "bulk_approve_btn" %>
+              <%= form.submit t(".bulk_reject"), class: "button tiny alert", name: "bulk_action", value: "reject", id: "bulk_reject_btn" %>
             </div>
           </div>
-          
-          <table class="table-list__table">
+          <!-- Hidden inputs for assignment IDs will be added by JavaScript -->
+        </div>
+      <% end %>
+      
+      <!-- Assignment Table (outside bulk form) -->
+      <div class="table-list">
+        <table class="table-list__table">
             <thead>
               <tr>
                 <th><input type="checkbox" id="select_all_header" /></th>
@@ -53,9 +59,10 @@
                 <tr>
                   <td>
                     <% if assignment.submitted? %>
-                      <%= form.check_box :assignment_ids, 
-                                        { multiple: true, id: "assignment_#{assignment.id}" }, 
-                                        assignment.id, "" %>
+                      <input type="checkbox" 
+                             class="assignment-checkbox" 
+                             value="<%= assignment.id %>" 
+                             id="assignment_<%= assignment.id %>" />
                     <% end %>
                   </td>
                   <td>
@@ -90,23 +97,27 @@
                   </td>
                   <td>
                     <div class="table-list__actions">
-                      <%= link_to t(".view"), task_assignment_path(assignment), 
+                      <%= link_to t(".view"), decidim_admin_volunteer_scheduler.task_assignment_path(assignment), 
                                  class: "action-icon--view", title: t(".view") %>
                       
                       <% if assignment.can_be_reviewed? %>
-                        <%= link_to t(".approve"), task_assignment_path(assignment), 
-                                   method: :patch,
-                                   params: { action_type: "approve" },
-                                   class: "action-icon--approve", 
-                                   title: t(".approve"),
-                                   confirm: t(".approve_confirm") %>
+                        <%= button_to t(".approve"), 
+                                     decidim_admin_volunteer_scheduler.task_assignment_path(assignment), 
+                                     method: :patch,
+                                     params: { action_type: "approve" },
+                                     form: { style: "display: inline;" },
+                                     class: "button tiny success", 
+                                     title: t(".approve"),
+                                     data: { confirm: t(".approve_confirm") } %>
                         
-                        <%= link_to t(".reject"), task_assignment_path(assignment), 
-                                   method: :patch,
-                                   params: { action_type: "reject" },
-                                   class: "action-icon--reject", 
-                                   title: t(".reject"),
-                                   confirm: t(".reject_confirm") %>
+                        <%= button_to t(".reject"), 
+                                     decidim_admin_volunteer_scheduler.task_assignment_path(assignment), 
+                                     method: :patch,
+                                     params: { action_type: "reject" },
+                                     form: { style: "display: inline;" },
+                                     class: "button tiny alert", 
+                                     title: t(".reject"),
+                                     data: { confirm: t(".reject_confirm") } %>
                       <% end %>
                     </div>
                   </td>
@@ -115,9 +126,8 @@
             </tbody>
           </table>
         </div>
-      <% end %>
-      
-      <%= paginate @task_assignments %>
+        
+        <%= paginate @task_assignments %>
     <% else %>
       <div class="empty-state">
         <div class="empty-state__icon">
@@ -134,8 +144,12 @@
 document.addEventListener('DOMContentLoaded', function() {
   const selectAll = document.getElementById('select_all');
   const selectAllHeader = document.getElementById('select_all_header');
-  const checkboxes = document.querySelectorAll('input[name="assignment_ids[]"]');
+  const checkboxes = document.querySelectorAll('.assignment-checkbox');
+  const bulkForm = document.getElementById('bulk_actions_form');
+  const bulkApproveBtn = document.getElementById('bulk_approve_btn');
+  const bulkRejectBtn = document.getElementById('bulk_reject_btn');
   
+  // Handle select all functionality
   [selectAll, selectAllHeader].forEach(checkbox => {
     if (checkbox) {
       checkbox.addEventListener('change', function() {
@@ -146,6 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   
+  // Handle individual checkbox changes
   checkboxes.forEach(checkbox => {
     checkbox.addEventListener('change', function() {
       const allChecked = Array.from(checkboxes).every(cb => cb.checked);
@@ -161,5 +176,41 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+  
+  // Handle bulk action submissions
+  function submitBulkAction(action) {
+    // Clear existing hidden inputs
+    const existingInputs = bulkForm.querySelectorAll('input[name="assignment_ids[]"]');
+    existingInputs.forEach(input => input.remove());
+    
+    // Add checked assignment IDs to the form
+    const checkedBoxes = document.querySelectorAll('.assignment-checkbox:checked');
+    checkedBoxes.forEach(checkbox => {
+      const hiddenInput = document.createElement('input');
+      hiddenInput.type = 'hidden';
+      hiddenInput.name = 'assignment_ids[]';
+      hiddenInput.value = checkbox.value;
+      bulkForm.appendChild(hiddenInput);
+    });
+    
+    // Set the action type
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action_type';
+    actionInput.value = action;
+    bulkForm.appendChild(actionInput);
+  }
+  
+  if (bulkApproveBtn) {
+    bulkApproveBtn.addEventListener('click', function(e) {
+      submitBulkAction('approve');
+    });
+  }
+  
+  if (bulkRejectBtn) {
+    bulkRejectBtn.addEventListener('click', function(e) {
+      submitBulkAction('reject');
+    });
+  }
 });
 </script>

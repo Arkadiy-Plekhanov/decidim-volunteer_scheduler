@@ -88,11 +88,10 @@ module Decidim
           assignee.add_xp(task_template.xp_reward)
           
           # Create transaction record
-          ScicentTransaction.create!(
-            volunteer_profile: assignee,
-            transaction_type: "task_completion",
-            xp_amount: task_template.xp_reward,
-            description: "Completed task: #{task_template.title}"
+          ScicentTransaction.create_task_completion!(
+            assignee,
+            task_template.xp_reward,
+            task_template.title
           )
           
           # Process referral commissions
@@ -130,8 +129,8 @@ module Decidim
         when "submitted"
           send_submission_notification
         when "approved"
-          # Award XP and update activity when task is approved
-          assignee.add_xp(task_template.xp_reward)
+          # XP award is handled by approve! method, not here
+          # assignee.add_xp(task_template.xp_reward) # REMOVED - duplicate
           send_approval_notification
         end
       end

@@ -36,8 +36,10 @@ module Decidim
                          .order(assigned_at: :desc)
                          .limit(10)
         
-        # Placeholder for transactions (can be implemented later)
-        @recent_transactions = []
+        # Get recent transactions for activity feed
+        @recent_transactions = current_volunteer_profile.scicent_transactions
+                              .order(created_at: :desc)
+                              .limit(10)
         
         @referral_stats = calculate_referral_stats
       end
