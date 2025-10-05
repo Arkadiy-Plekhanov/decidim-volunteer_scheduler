@@ -1,82 +1,213 @@
 <% add_decidim_page_title(t(".title")) %>
 
-<div class="row">
-  <div class="large-12 columns">
-    <div class="card">
-      <div class="card-divider">
-        <h2 class="card-title">
+<!-- My Task Assignments Page with Decidim Native Components -->
+<div class="volunteer-dashboard-container fade-in">
+  <div class="max-w-6xl mx-auto">
+
+    <!-- Page Header -->
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-3xl font-bold flex items-center gap-3">
+          <%= icon "list-check", class: "w-8 h-8 text-primary", role: "img" %>
           <%= t(".title") %>
-        </h2>
-      </div>
-      <div class="card-section">
-        <div class="filters">
-          <%= link_to t(".all"), task_assignments_path, 
-                     class: "button hollow #{'secondary' if params[:status].blank?}" %>
-          <%= link_to t(".pending"), task_assignments_path(status: :pending), 
-                     class: "button hollow #{'secondary' if params[:status] == 'pending'}" %>
-          <%= link_to t(".submitted"), task_assignments_path(status: :submitted), 
-                     class: "button hollow #{'secondary' if params[:status] == 'submitted'}" %>
-          <%= link_to t(".approved"), task_assignments_path(status: :approved), 
-                     class: "button hollow #{'secondary' if params[:status] == 'approved'}" %>
-          <%= link_to t(".rejected"), task_assignments_path(status: :rejected), 
-                     class: "button hollow #{'secondary' if params[:status] == 'rejected'}" %>
-        </div>
-        
-        <% if @task_assignments.any? %>
-          <div class="table-scroll">
-            <table class="table-list">
-              <thead>
-                <tr>
-                  <th><%= t(".task") %></th>
-                  <th><%= t(".status") %></th>
-                  <th><%= t(".assigned_date") %></th>
-                  <th><%= t(".due_date") %></th>
-                  <th><%= t(".actions") %></th>
-                </tr>
-              </thead>
-              <tbody>
-                <% @task_assignments.each do |assignment| %>
-                  <tr>
-                    <td>
-                      <strong><%= assignment.task_template.title %></strong><br>
-                      <small><%= truncate(assignment.task_template.description, length: 100) %></small>
-                    </td>
-                    <td>
-                      <span class="label <%= assignment_status_class(assignment) %>">
-                        <%= t("decidim.volunteer_scheduler.task_assignments.status.#{assignment.status}") %>
-                      </span>
-                    </td>
-                    <td><%= l(assignment.assigned_at, format: :short) %></td>
-                    <td>
-                      <% if assignment.due_date %>
-                        <%= l(assignment.due_date, format: :short) %>
-                        <% if assignment.overdue? %>
-                          <span class="label alert"><%= t(".overdue") %></span>
-                        <% end %>
-                      <% else %>
-                        —
-                      <% end %>
-                    </td>
-                    <td>
-                      <%= link_to t(".view"), task_assignment_path(assignment), class: "button tiny" %>
-                      <% if assignment.can_be_submitted? %>
-                        <%= link_to t(".submit_work"), task_assignment_path(assignment), 
-                                   class: "button tiny success" %>
-                      <% end %>
-                    </td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-          
-          <%= paginate @task_assignments %>
-        <% else %>
-          <div class="callout">
-            <%= t(".no_assignments") %>
-          </div>
+        </h1>
+        <%= link_to decidim_volunteer_scheduler.root_path, class: "button button__sm button__transparent-secondary" do %>
+          <%= icon "arrow-left-line", class: "w-4 h-4 mr-1", role: "img" %>
+          <%= t(".back_to_dashboard") %>
         <% end %>
       </div>
     </div>
+
+    <!-- Statistics Summary -->
+    <div class="statistic__container mb-6">
+      <div class="statistic">
+        <div class="statistic__header">
+          <div class="statistic__title"><%= t(".total_assignments") %></div>
+          <div class="statistic__icon">
+            <%= icon "list-check", role: "img" %>
+          </div>
+        </div>
+        <div class="statistic__number"><%= @task_assignments.total_count %></div>
+      </div>
+
+      <div class="statistic">
+        <div class="statistic__header">
+          <div class="statistic__title"><%= t(".pending") %></div>
+          <div class="statistic__icon">
+            <%= icon "time-line", role: "img" %>
+          </div>
+        </div>
+        <div class="statistic__number"><%= @task_assignments.where(status: :pending).count %></div>
+      </div>
+
+      <div class="statistic">
+        <div class="statistic__header">
+          <div class="statistic__title"><%= t(".submitted") %></div>
+          <div class="statistic__icon">
+            <%= icon "mail-send-line", role: "img" %>
+          </div>
+        </div>
+        <div class="statistic__number"><%= @task_assignments.where(status: :submitted).count %></div>
+      </div>
+
+      <div class="statistic">
+        <div class="statistic__header">
+          <div class="statistic__title"><%= t(".approved") %></div>
+          <div class="statistic__icon">
+            <%= icon "checkbox-circle-line", role: "img" %>
+          </div>
+        </div>
+        <div class="statistic__number"><%= @task_assignments.where(status: :approved).count %></div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-6">
+      <div class="card__content p-4">
+        <div class="flex flex-wrap gap-2">
+          <%= link_to task_assignments_path,
+                     class: "button button__sm #{params[:status].blank? ? 'button__secondary' : 'button__transparent-secondary'}" do %>
+            <%= t(".all") %>
+          <% end %>
+
+          <%= link_to task_assignments_path(status: :pending),
+                     class: "button button__sm #{params[:status] == 'pending' ? 'button__secondary' : 'button__transparent-secondary'}" do %>
+            <%= icon "time-line", class: "w-4 h-4 mr-1", role: "img" %>
+            <%= t(".pending") %>
+          <% end %>
+
+          <%= link_to task_assignments_path(status: :submitted),
+                     class: "button button__sm #{params[:status] == 'submitted' ? 'button__secondary' : 'button__transparent-secondary'}" do %>
+            <%= icon "mail-send-line", class: "w-4 h-4 mr-1", role: "img" %>
+            <%= t(".submitted") %>
+          <% end %>
+
+          <%= link_to task_assignments_path(status: :approved),
+                     class: "button button__sm #{params[:status] == 'approved' ? 'button__secondary' : 'button__transparent-secondary'}" do %>
+            <%= icon "checkbox-circle-line", class: "w-4 h-4 mr-1", role: "img" %>
+            <%= t(".approved") %>
+          <% end %>
+
+          <%= link_to task_assignments_path(status: :rejected),
+                     class: "button button__sm #{params[:status] == 'rejected' ? 'button__secondary' : 'button__transparent-secondary'}" do %>
+            <%= icon "close-circle-line", class: "w-4 h-4 mr-1", role: "img" %>
+            <%= t(".rejected") %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task Assignments List -->
+    <% if @task_assignments.any? %>
+      <div class="card__list-list space-y-3 mb-6">
+        <% @task_assignments.each do |assignment| %>
+          <%= link_to task_assignment_path(assignment), class: "card__list assignment-status #{assignment.status}" do %>
+            <div class="card__list-content">
+              <!-- Task Title and Description -->
+              <h4 class="card__list-title flex items-center gap-2 mb-2">
+                <%= assignment.task_template.title %>
+                <span class="label <%= assignment_status_class(assignment) %>">
+                  <%= icon assignment_status_icon(assignment), class: "w-3 h-3", role: "img" %>
+                  <%= t("decidim.volunteer_scheduler.task_assignments.status.#{assignment.status}") %>
+                </span>
+              </h4>
+
+              <p class="card__list-text line-clamp-2 mb-3">
+                <%= truncate(assignment.task_template.description, length: 150) %>
+              </p>
+
+              <!-- Metadata Grid -->
+              <div class="card__list-metadata">
+                <!-- XP Reward -->
+                <div class="flex items-center gap-1">
+                  <%= icon "star-line", class: "w-4 h-4 text-warning", role: "img" %>
+                  <span class="text-sm font-semibold text-warning">
+                    <%= assignment.task_template.xp_reward %> <%= t("decidim.volunteer_scheduler.common.xp") %>
+                  </span>
+                </div>
+
+                <!-- Assigned Date -->
+                <div class="flex items-center gap-1">
+                  <%= icon "calendar-line", class: "w-4 h-4", role: "img" %>
+                  <span class="text-sm">
+                    <%= t(".assigned_at", date: l(assignment.assigned_at, format: :short)) %>
+                  </span>
+                </div>
+
+                <!-- Due Date -->
+                <% if assignment.due_date %>
+                  <div class="flex items-center gap-1">
+                    <%= icon "time-line", class: "w-4 h-4 #{assignment.overdue? ? 'text-alert' : ''}", role: "img" %>
+                    <span class="text-sm <%= assignment.overdue? ? 'text-alert font-semibold' : '' %>">
+                      <% if assignment.overdue? %>
+                        <%= t(".overdue") %> (<%= l(assignment.due_date, format: :short) %>)
+                      <% else %>
+                        <%= t(".due_at", date: l(assignment.due_date, format: :short)) %>
+                      <% end %>
+                    </span>
+                  </div>
+                <% end %>
+
+                <!-- Level Required -->
+                <div class="flex items-center gap-1">
+                  <%= icon "trophy-line", class: "w-4 h-4", role: "img" %>
+                  <span class="text-sm">
+                    <%= t("decidim.volunteer_scheduler.common.level_number", level: assignment.task_template.level_required) %>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Action Hint -->
+              <% if assignment.can_be_submitted? %>
+                <div class="mt-3 pt-3 border-t border-gray">
+                  <span class="text-sm font-semibold text-secondary flex items-center gap-1">
+                    <%= icon "upload-line", class: "w-4 h-4", role: "img" %>
+                    <%= t(".ready_to_submit") %>
+                  </span>
+                </div>
+              <% elsif assignment.submitted? %>
+                <div class="mt-3 pt-3 border-t border-gray">
+                  <span class="text-sm flex items-center gap-1">
+                    <%= icon "mail-check-line", class: "w-4 h-4 text-secondary", role: "img" %>
+                    <%= t(".awaiting_review") %>
+                  </span>
+                </div>
+              <% elsif assignment.approved? %>
+                <div class="mt-3 pt-3 border-t border-gray">
+                  <span class="text-sm text-success flex items-center gap-1">
+                    <%= icon "checkbox-circle-line", class: "w-4 h-4", role: "img" %>
+                    <%= t(".task_completed") %>
+                  </span>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="card__list-action">
+              <%= icon "arrow-right-s-line", class: "w-5 h-5", role: "img" %>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+
+      <!-- Pagination -->
+      <div class="text-center">
+        <%= paginate @task_assignments %>
+      </div>
+
+    <% else %>
+      <!-- Empty State -->
+      <div class="empty-state">
+        <%= icon "list-check", class: "empty-icon", role: "img" %>
+        <h3 class="empty-title"><%= t(".no_assignments") %></h3>
+        <p class="empty-description">
+          <%= t(".start_volunteering") %>
+        </p>
+        <%= link_to decidim_volunteer_scheduler.root_path, class: "button button__lg button__secondary mt-4" do %>
+          <%= icon "arrow-left-line", class: "w-4 h-4 mr-2", role: "img" %>
+          <%= t(".back_to_dashboard") %>
+        <% end %>
+      </div>
+    <% end %>
+
   </div>
 </div>

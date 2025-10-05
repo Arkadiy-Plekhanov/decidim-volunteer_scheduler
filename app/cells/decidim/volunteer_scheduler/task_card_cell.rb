@@ -43,16 +43,16 @@ module Decidim
         accept_task_template_path(task_template.id)
       end
 
-      def difficulty_color
+      def difficulty_class
         case task_template.level_required
         when 1
-          "bg-green-100 text-green-800"
+          "beginner"
         when 2
-          "bg-yellow-100 text-yellow-800"  
+          "intermediate"
         when 3
-          "bg-red-100 text-red-800"
+          "advanced"
         else
-          "bg-gray-100 text-gray-800"
+          ""
         end
       end
 

@@ -1,67 +1,519 @@
-/* Volunteer Scheduler Styles */
+/* Decidim Volunteer Scheduler Styles */
+/* Compatible with Decidim 0.30+ design system */
 
-// Use Decidim's existing classes and enhance them minimally
-
-// Volunteer Dashboard specific enhancements
-.volunteer-dashboard {
-  // Profile card with gradient background
-  .profile-card {
-    background: var(--primary-gradient, linear-gradient(135deg, #ef604d 0%, #f77a52 100%));
+/* ===== VOLUNTEER PROFILE STATS ===== */
+.volunteer-profile {
+  .profile-header {
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     color: white;
-    
-    .card-title {
-      color: white;
-    }
-    
-    p, strong {
-      color: rgba(255, 255, 255, 0.95);
-    }
   }
-  
-  // Enhanced referral section
-  .referral-section {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    padding: 1rem;
+
+  .profile-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .profile-avatar {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .profile-avatar svg {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .profile-details {
+    flex: 1;
+  }
+
+  .profile-details h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 0.25rem;
+  }
+
+  .profile-details p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.875rem;
+  }
+
+  .profile-level {
+    text-align: right;
+  }
+
+  .level-badge {
+    font-size: 1.875rem;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 0.25rem;
+  }
+
+  .level-label {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  /* XP Progress Bar */
+  .xp-progress-container {
     margin-top: 1rem;
-    
-    .input-group-field {
-      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-      font-size: 0.85rem;
-      background: rgba(255, 255, 255, 0.9);
-    }
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .progress-text {
+    font-weight: 500;
+    color: white;
+  }
+
+  .progress-numbers {
+    font-size: 0.75rem;
+    opacity: 0.75;
+    color: white;
+  }
+
+  .progress-bar {
+    height: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .progress-meter {
+    height: 100%;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.9);
+    transition: width 0.5s ease-out;
+    animation: slideInLeft 500ms ease-out;
   }
 }
 
-// Task Cards with minimal enhancement
-.task-card {
-  border-left: 4px solid var(--primary, #ef604d);
-  transition: box-shadow 0.2s ease;
-  
-  &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
-  
-  .task-metadata {
-    background-color: var(--light-gray, #f1f1f1);
-    padding: 0.75rem;
-    margin: 0.75rem -1rem -1rem -1rem;
-    
-    small {
-      display: flex;
-      justify-content: space-between;
-      font-weight: 600;
-      color: var(--dark-gray, #666);
-    }
+/* ===== STATISTICS CARDS ===== */
+.volunteer-stats .statistic {
+  transition: all 0.2s ease;
+}
+
+.volunteer-stats .statistic:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== TASK CARDS ===== */
+.task-cards-grid .card__grid {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.task-cards-grid .card__grid:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.task-status-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+.task-difficulty.beginner {
+  background-color: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.task-difficulty.intermediate {
+  background-color: rgba(255, 183, 3, 0.1);
+  color: #ffb703;
+  border: 1px solid rgba(255, 183, 3, 0.2);
+}
+
+.task-difficulty.advanced {
+  background-color: rgba(237, 28, 36, 0.1);
+  color: #ed1c24;
+  border: 1px solid rgba(237, 28, 36, 0.2);
+}
+
+/* ===== TASK ASSIGNMENTS LIST ===== */
+.task-assignments-list .card__list {
+  transition: all 0.2s ease;
+}
+
+.task-assignments-list .card__list:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.assignment-status.pending {
+  border-left: 4px solid #6c757d;
+}
+
+.assignment-status.in_progress {
+  border-left: 4px solid #ffb703;
+}
+
+.assignment-status.submitted {
+  border-left: 4px solid var(--secondary);
+}
+
+.assignment-status.completed {
+  border-left: 4px solid #28a745;
+}
+
+.assignment-status.rejected {
+  border-left: 4px solid #ed1c24;
+}
+
+/* ===== REFERRAL SECTION ===== */
+.referral-stats-card .referral-commission-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, var(--tertiary) 0%, var(--secondary) 100%);
+  color: white;
+}
+
+.referral-commission-badge .commission-amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.referral-commission-badge .commission-label {
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
+.referral-code-input {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.875rem;
+  background-color: var(--background-3, #f8f9fa);
+  border: 2px solid var(--gray, #dee2e6);
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.referral-code-input:focus {
+  border-color: var(--secondary);
+  outline: none;
+}
+
+.copy-button {
+  transition: all 0.2s;
+}
+
+.copy-button:hover {
+  transform: scale(1.05);
+}
+
+.copy-button.copied {
+  animation: successPulse 0.5s ease-out;
+}
+
+/* ===== ACHIEVEMENT BADGES ===== */
+.achievements-section .achievement-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background-color: var(--background, #fff);
+  transition: all 0.2s;
+}
+
+.achievements-section .achievement-item:hover {
+  background-color: var(--background-3, #f8f9fa);
+}
+
+.achievement-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(40, 167, 69, 0.1);
+}
+
+.achievement-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #28a745;
+}
+
+.achievement-content {
+  flex: 1;
+}
+
+.achievement-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.achievement-description {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.achievement-date {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+/* ===== ACTIVITY FEED ===== */
+.activity-feed .activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.activity-feed .activity-item:hover {
+  background-color: var(--background, #fff);
+}
+
+.activity-icon-wrapper {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.activity-icon-wrapper.earning {
+  background-color: rgba(40, 167, 69, 0.1);
+}
+
+.activity-icon-wrapper.earning svg {
+  color: #28a745;
+}
+
+.activity-icon-wrapper.spending {
+  background-color: rgba(237, 28, 36, 0.1);
+}
+
+.activity-icon-wrapper.spending svg {
+  color: #ed1c24;
+}
+
+.activity-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-description {
+  font-size: 0.875rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-timestamp {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.activity-amount {
+  flex-shrink: 0;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.activity-amount.positive {
+  color: #28a745;
+}
+
+.activity-amount.negative {
+  color: #ed1c24;
+}
+
+/* ===== DASHBOARD LAYOUT ===== */
+.volunteer-dashboard-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-// Animation for new content
+.dashboard-section {
+  margin-bottom: 1rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.section-title svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--primary);
+}
+
+.section-badge {
+  background-color: rgba(var(--primary-rgb, 239, 96, 77), 0.1);
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
+/* ===== EMPTY STATES ===== */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.empty-icon {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 1rem;
+  opacity: 0.4;
+}
+
+.empty-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.empty-description {
+  font-size: 0.875rem;
+  opacity: 0.75;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes successPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+
 .fade-in {
-  animation: fadeIn 0.3s ease-in;
+  animation: fadeInUp 0.3s ease-out;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .volunteer-dashboard-container {
+    padding: 1rem 0.75rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .statistic__container {
+    grid-template-columns: 1fr !important;
+  }
+
+  @supports (grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))) {
+    .statistic__container {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    }
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+.card__grid:focus-visible,
+.card__list:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--secondary);
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .volunteer-dashboard-container .profile-header {
+    background: none !important;
+    border: 1px solid #ddd;
+    color: black !important;
+  }
+
+  .button,
+  .copy-button {
+    display: none;
+  }
 }

@@ -1,110 +1,178 @@
 <% add_decidim_page_title(@task_assignment.task_template.title) %>
 
-<div class="row">
-  <div class="large-8 columns">
-    <div class="card">
-      <div class="card-divider">
-        <h2 class="card-title">
-          <%= @task_assignment.task_template.title %>
-        </h2>
-        <span class="label <%= assignment_status_class(@task_assignment) %>">
-          <%= t("decidim.volunteer_scheduler.task_assignments.status.#{@task_assignment.status}") %>
-        </span>
-      </div>
-      <div class="card-section">
-        <div class="task-description">
-          <%= simple_format(@task_assignment.task_template.description) %>
+<!-- Task Assignment Detail Page -->
+<div class="volunteer-dashboard-container fade-in">
+  <div class="max-w-4xl mx-auto">
+
+    <!-- Back Button -->
+    <div class="mb-6">
+      <%= link_to decidim_volunteer_scheduler.root_path, class: "button button__sm button__transparent-secondary" do %>
+        <%= icon "arrow-left-line", class: "w-4 h-4 mr-1", role: "img" %>
+        <%= t(".back_to_dashboard") %>
+      <% end %>
+    </div>
+
+    <!-- Task Header Card -->
+    <div class="card mb-6">
+      <div class="card__content p-6">
+        <!-- Title and Status -->
+        <div class="flex items-start justify-between gap-4 mb-4">
+          <div class="flex-1">
+            <h1 class="text-3xl font-bold mb-2"><%= @task_assignment.task_template.title %></h1>
+            <div class="flex items-center gap-2 text-sm opacity-75">
+              <%= icon "calendar-line", class: "w-4 h-4", role: "img" %>
+              <span><%= t(".assigned_on", date: l(@task_assignment.assigned_at, format: :long)) %></span>
+            </div>
+          </div>
+
+          <!-- Status Badge -->
+          <span class="label <%= assignment_status_class(@task_assignment) %> text-lg px-4 py-2">
+            <%= icon assignment_status_icon(@task_assignment), class: "w-5 h-5", role: "img" %>
+            <%= t("decidim.volunteer_scheduler.task_assignments.status.#{@task_assignment.status}") %>
+          </span>
         </div>
-        
-        <div class="task-metadata">
-          <p><strong><%= t(".reward") %>:</strong> <%= @task_assignment.task_template.xp_reward %> <%= t("decidim.volunteer_scheduler.common.xp") %></p>
-          <p><strong><%= t(".level_required") %>:</strong> <%= t("decidim.volunteer_scheduler.common.level_number", level: @task_assignment.task_template.level_required) %></p>
-          <p><strong><%= t(".category") %>:</strong> <%= t("decidim.volunteer_scheduler.categories.#{@task_assignment.task_template.category}", default: @task_assignment.task_template.category) %></p>
-          <p><strong><%= t(".assigned_at") %>:</strong> <%= l(@task_assignment.assigned_at, format: :long) %></p>
+
+        <!-- Task Description -->
+        <div class="prose max-w-none mb-6">
+          <p class="text-lg"><%= @task_assignment.task_template.description %></p>
+        </div>
+
+        <!-- Task Metadata Grid -->
+        <div class="statistic__container">
+          <!-- XP Reward -->
+          <div class="statistic">
+            <div class="statistic__header">
+              <div class="statistic__title"><%= t(".reward") %></div>
+              <div class="statistic__icon">
+                <%= icon "star-line", role: "img" %>
+              </div>
+            </div>
+            <div class="statistic__number"><%= @task_assignment.task_template.xp_reward %></div>
+            <div class="statistic__second-number"><%= t("decidim.volunteer_scheduler.common.xp") %></div>
+          </div>
+
+          <!-- Level Required -->
+          <div class="statistic">
+            <div class="statistic__header">
+              <div class="statistic__title"><%= t(".level_required") %></div>
+              <div class="statistic__icon">
+                <%= icon "trophy-line", role: "img" %>
+              </div>
+            </div>
+            <div class="statistic__number"><%= @task_assignment.task_template.level_required %></div>
+            <div class="statistic__second-number">
+              <%= t("decidim.volunteer_scheduler.categories.#{@task_assignment.task_template.category}",
+                    default: @task_assignment.task_template.category) %>
+            </div>
+          </div>
+
           <% if @task_assignment.due_date %>
-            <p><strong><%= t(".due_date") %>:</strong> 
-              <%= l(@task_assignment.due_date, format: :long) %>
-              <% if @task_assignment.overdue? %>
-                <span class="label alert"><%= t(".overdue") %></span>
-              <% end %>
-            </p>
+            <!-- Due Date -->
+            <div class="statistic">
+              <div class="statistic__header">
+                <div class="statistic__title"><%= t(".due_date") %></div>
+                <div class="statistic__icon">
+                  <%= icon "calendar-line", role: "img" %>
+                </div>
+              </div>
+              <div class="statistic__number text-xl">
+                <%= l(@task_assignment.due_date, format: :short) %>
+              </div>
+              <div class="statistic__second-number">
+                <%= days_until_due(@task_assignment) %>
+              </div>
+            </div>
           <% end %>
-        </div>
-        
-        <% if @task_assignment.submitted_at %>
-          <div class="callout primary">
-            <h6><%= t(".submitted_at") %></h6>
-            <p><%= l(@task_assignment.submitted_at, format: :long) %></p>
-            <% if @task_assignment.submission_notes.present? %>
-              <p><strong><%= t(".submission_notes") %>:</strong></p>
-              <p><%= simple_format(@task_assignment.submission_notes) %></p>
-            <% end %>
-          </div>
-        <% end %>
-        
-        <% if @task_assignment.reviewed_at %>
-          <div class="callout <%= @task_assignment.approved? ? 'success' : 'alert' %>">
-            <h6><%= t(".review_result") %></h6>
-            <p><strong><%= t(".reviewed_at") %>:</strong> <%= l(@task_assignment.reviewed_at, format: :long) %></p>
-            <% if @task_assignment.reviewer %>
-              <p><strong><%= t(".reviewer") %>:</strong> <%= @task_assignment.reviewer.name %></p>
-            <% end %>
-            <% if @task_assignment.review_notes.present? %>
-              <p><strong><%= t(".review_notes") %>:</strong></p>
-              <p><%= simple_format(@task_assignment.review_notes) %></p>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
-    </div>
-  </div>
-  
-  <div class="large-4 columns">
-    <div class="card">
-      <div class="card-divider">
-        <h3 class="card-title">
-          <%= t(".actions") %>
-        </h3>
-      </div>
-      <div class="card-section">
-        <% if @task_assignment.can_be_submitted? %>
-          <div class="callout primary">
-            <h5><%= t(".ready_to_submit") %></h5>
-            <p><%= t(".submit_description") %></p>
-            <%= link_to t(".submit_work"), 
-                       new_task_assignment_submission_path(@task_assignment), 
-                       class: "button success expanded" %>
-        <% elsif @task_assignment.pending? %>
-          <div class="callout warning">
-            <%= t(".cannot_submit_yet") %>
-          </div>
-        <% elsif @task_assignment.submitted? %>
-          <div class="callout primary">
-            <%= t(".awaiting_review") %>
-          </div>
-        <% elsif @task_assignment.approved? %>
-          <div class="callout success">
-            <%= t(".task_approved") %>
-            <p><strong><%= t(".xp_earned") %>:</strong> <%= @task_assignment.task_template.xp_reward %> <%= t("decidim.volunteer_scheduler.common.xp") %></p>
-          </div>
-        <% elsif @task_assignment.rejected? %>
-          <div class="callout alert">
-            <%= t(".task_rejected") %>
-          </div>
-          
-          <% if @task_assignment.task_template.can_be_assigned_to?(current_volunteer_profile) %>
-            <%= link_to t(".retry_task"), 
-                       task_assignments_path(task_template_id: @task_assignment.task_template.id), 
-                       method: :post, 
-                       class: "button hollow expanded" %>
-          <% end %>
-        <% end %>
-        
-        <div class="actions">
-          <%= link_to t(".back_to_assignments"), task_assignments_path, class: "button hollow expanded" %>
-          <%= link_to t(".back_to_dashboard"), my_dashboard_path, class: "button hollow expanded" %>
         </div>
       </div>
     </div>
+
+    <!-- Action Buttons based on status -->
+    <% if @task_assignment.pending? %>
+      <div class="card mb-6">
+        <div class="card__content p-6">
+          <h2 class="text-xl font-bold mb-4">
+            <%= icon "upload-line", class: "w-5 h-5 mr-2", role: "img" %>
+            <%= t(".submit_work") %>
+          </h2>
+
+          <%= form_with model: @task_assignment, url: submit_task_assignment_path(@task_assignment), method: :patch, local: true do |form| %>
+            <div class="mb-4">
+              <%= form.label :submission_notes, t(".completion_notes"), class: "block font-semibold mb-2" %>
+              <%= form.text_area :submission_notes,
+                                 rows: 6,
+                                 class: "form-control w-full",
+                                 placeholder: t(".completion_notes_placeholder") %>
+            </div>
+
+            <div class="flex gap-3">
+              <%= form.submit t(".submit_for_review"),
+                             class: "button button__lg button__primary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+    <% elsif @task_assignment.submitted? %>
+      <div class="callout">
+        <div class="flex items-start gap-3">
+          <%= icon "mail-check-line", class: "w-6 h-6 text-secondary", role: "img" %>
+          <div>
+            <h3 class="font-bold mb-1"><%= t(".under_review") %></h3>
+            <p><%= t(".review_message") %></p>
+          </div>
+        </div>
+      </div>
+
+    <% elsif @task_assignment.approved? %>
+      <div class="callout success">
+        <div class="flex items-start gap-3">
+          <%= icon "checkbox-circle-line", class: "w-6 h-6", role: "img" %>
+          <div>
+            <h3 class="font-bold mb-1"><%= t(".task_completed_title") %></h3>
+            <p><%= t(".task_completed_message", xp: @task_assignment.task_template.xp_reward) %></p>
+          </div>
+        </div>
+      </div>
+
+    <% elsif @task_assignment.rejected? %>
+      <div class="callout alert">
+        <div class="flex items-start gap-3">
+          <%= icon "error-warning-line", class: "w-6 h-6", role: "img" %>
+          <div>
+            <h3 class="font-bold mb-1"><%= t(".needs_revision") %></h3>
+            <% if @task_assignment.admin_notes.present? %>
+              <p class="mb-3"><strong><%= t(".admin_feedback") %>:</strong> <%= @task_assignment.admin_notes %></p>
+            <% end %>
+            <%= link_to t(".resubmit"),
+                       task_assignment_path(@task_assignment),
+                       class: "button button__sm button__secondary" %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Submission History (if available) -->
+    <% if @task_assignment.submission_notes.present? %>
+      <div class="card">
+        <div class="card__content p-6">
+          <h2 class="text-xl font-bold mb-4">
+            <%= icon "file-text-line", class: "w-5 h-5 mr-2", role: "img" %>
+            <%= t(".your_submission") %>
+          </h2>
+          <div class="prose max-w-none">
+            <%= simple_format(@task_assignment.submission_notes) %>
+          </div>
+
+          <% if @task_assignment.submitted_at %>
+            <div class="mt-4 text-sm opacity-75">
+              <%= icon "calendar-line", class: "w-4 h-4 mr-1", role: "img" %>
+              <%= t(".submitted_on", date: l(@task_assignment.submitted_at, format: :long)) %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
   </div>
 </div>

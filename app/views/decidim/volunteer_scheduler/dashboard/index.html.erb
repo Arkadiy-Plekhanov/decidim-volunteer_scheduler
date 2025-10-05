@@ -1,244 +1,234 @@
 <% add_decidim_page_title(t(".title")) %>
 
-<!-- Modern Dashboard Layout -->
-<div class="volunteer-dashboard max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <!-- Profile Header -->
-  <div class="mb-8">
+<!-- Volunteer Dashboard with Decidim Native Components -->
+<div class="volunteer-dashboard-container fade-in">
+
+  <!-- Profile Header Section -->
+  <div class="dashboard-header">
     <% if current_volunteer_profile %>
       <%= cell("decidim/volunteer_scheduler/profile_stats", current_volunteer_profile) %>
     <% else %>
-      <div class="card bg-yellow-50 border-yellow-200">
-        <div class="card__content">
-          <div class="flex items-center">
-            <%= icon "loader-3-line", class: "w-5 h-5 mr-3 text-yellow-600 animate-spin" %>
-            <p class="text-yellow-800"><%= t(".profile_creating", default: "Setting up your volunteer profile...") %></p>
-          </div>
+      <div class="callout warning">
+        <div class="flex items-center gap-3">
+          <%= icon "loader-3-line", class: "w-5 h-5 animate-spin", role: "img" %>
+          <p><%= t(".profile_creating", default: "Настройка профиля волонтёра...") %></p>
         </div>
       </div>
     <% end %>
   </div>
-</div>
 
-  <!-- Main Content Grid -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+  <!-- Main Dashboard Grid -->
+  <div class="dashboard-grid">
+
     <!-- Available Tasks Section -->
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold text-gray-900 flex items-center">
-          <%= icon "check-line", class: "w-6 h-6 mr-3 text-primary" %>
+    <div class="dashboard-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <%= icon "check-line", role: "img" %>
           <%= t(".available_tasks") %>
         </h2>
-        <span class="bg-primary bg-opacity-10 text-primary text-sm font-medium px-3 py-1 rounded-full">
+        <span class="section-badge">
           <%= @available_tasks.count %>
         </span>
       </div>
-      
-      <div class="space-y-4">
-        <% if @available_tasks.any? %>
-          <% @available_tasks.each do |task| %>
-            <%= cell("decidim/volunteer_scheduler/task_card", task) %>
-          <% end %>
-        <% else %>
-          <div class="card bg-yellow-50 border-yellow-200">
-            <div class="card__content text-center py-8">
-              <%= icon "check-line", class: "w-12 h-12 mx-auto mb-4 text-yellow-400" %>
-              <h3 class="text-lg font-semibold text-yellow-800 mb-2">
-                <%= t(".no_available_tasks") %>
-              </h3>
-              <p class="text-yellow-600">
-                <%= t(".check_back_later", default: "Check back later for new opportunities!") %>
+
+      <div class="task-cards-grid">
+        <div class="card__grid-grid">
+          <% if @available_tasks.any? %>
+            <% @available_tasks.each do |task| %>
+              <%= cell("decidim/volunteer_scheduler/task_card", task) %>
+            <% end %>
+          <% else %>
+            <div class="empty-state">
+              <%= icon "checkbox-circle-line", class: "empty-icon", role: "img" %>
+              <h3 class="empty-title"><%= t(".no_available_tasks") %></h3>
+              <p class="empty-description">
+                <%= t(".check_back_later", default: "Загляните позже за новыми заданиями!") %>
               </p>
             </div>
-          </div>
-        <% end %>
+          <% end %>
+        </div>
       </div>
     </div>
 
     <!-- My Assignments Section -->
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold text-gray-900 flex items-center">
-          <%= icon "save-line", class: "w-6 h-6 mr-3 text-primary" %>
+    <div class="dashboard-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <%= icon "list-check", role: "img" %>
           <%= t(".my_assignments") %>
         </h2>
-        <span class="bg-primary bg-opacity-10 text-primary text-sm font-medium px-3 py-1 rounded-full">
-          <%= @my_assignments.count %>
-        </span>
+        <div class="flex items-center gap-3">
+          <span class="section-badge">
+            <%= @my_assignments.count %>
+          </span>
+          <%= link_to task_assignments_path, class: "button button__sm button__transparent-secondary" do %>
+            <%= t(".view_all_assignments") %>
+            <%= icon "arrow-right-line", class: "w-4 h-4 ml-1", role: "img" %>
+          <% end %>
+        </div>
       </div>
-      
-      <div class="space-y-3">
-        <% if @my_assignments.any? %>
-          <% @my_assignments.limit(5).each do |assignment| %>
-            <div class="card hover:shadow-md transition-shadow duration-200">
-              <div class="card__content">
-                <div class="flex items-center justify-between">
-                  <div class="flex-1">
-                    <h4 class="font-semibold text-gray-900 mb-1">
-                      <%= assignment.task_template.title %>
-                    </h4>
-                    <div class="flex items-center space-x-4 text-sm text-gray-500">
-                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium <%= assignment_status_color(assignment) %>">
-                        <%= icon assignment_status_icon(assignment), class: "w-3 h-3 mr-1" %>
+
+      <div class="task-assignments-list">
+        <div class="card__list-list space-y-3">
+          <% if @my_assignments.any? %>
+            <% @my_assignments.limit(5).each do |assignment| %>
+              <%= link_to task_assignment_path(assignment), class: "card__list assignment-status #{assignment.status}" do %>
+                <div class="card__list-content">
+                  <h4 class="card__list-title"><%= assignment.task_template.title %></h4>
+                  <p class="card__list-text line-clamp-2"><%= truncate(assignment.task_template.description, length: 100) %></p>
+
+                  <div class="card__list-metadata">
+                    <!-- Status -->
+                    <div class="flex items-center gap-1">
+                      <span class="label <%= assignment_status_class(assignment) %>">
+                        <%= icon assignment_status_icon(assignment), class: "w-3 h-3", role: "img" %>
                         <%= t("decidim.volunteer_scheduler.task_assignments.status.#{assignment.status}") %>
                       </span>
-                      <% if assignment.due_date %>
-                        <span class="flex items-center">
-                          <%= icon "calendar-line", class: "w-3 h-3 mr-1" %>
-                          <%= t(".due_date", date: l(assignment.due_date, format: :short)) %>
-                        </span>
-                      <% end %>
                     </div>
+
+                    <!-- XP Reward -->
+                    <div class="flex items-center gap-1">
+                      <%= icon "star-line", class: "w-3 h-3 text-warning", role: "img" %>
+                      <span class="text-sm"><%= assignment.task_template.xp_reward %> <%= t("decidim.volunteer_scheduler.common.xp") %></span>
+                    </div>
+
+                    <!-- Due Date -->
+                    <% if assignment.due_date %>
+                      <div class="flex items-center gap-1">
+                        <%= icon "calendar-line", class: "w-3 h-3", role: "img" %>
+                        <span class="text-sm"><%= t(".due_date", date: l(assignment.due_date, format: :short)) %></span>
+                      </div>
+                    <% end %>
                   </div>
-                  <%= link_to task_assignment_path(assignment), 
-                             class: "button button--sm" do %>
-                    <%= icon "search-line", class: "w-4 h-4 mr-1" %>
-                    <%= t(".view") %>
-                  <% end %>
                 </div>
-              </div>
-            </div>
-          <% end %>
-          
-          <% if @my_assignments.count > 5 %>
-            <div class="text-center pt-4">
-              <%= link_to Decidim::VolunteerScheduler::Engine.routes.url_helpers.task_assignments_path, 
-                         class: "button button--outline" do %>
-                <%= t(".view_all_assignments") %>
-                <%= icon "arrow-right-line", class: "w-4 h-4 ml-2" %>
+
+                <div class="card__list-action">
+                  <%= icon "arrow-right-s-line", class: "w-5 h-5", role: "img" %>
+                </div>
               <% end %>
-            </div>
-          <% end %>
-        <% else %>
-          <div class="card bg-gray-50">
-            <div class="card__content text-center py-8">
-              <%= icon "save-line", class: "w-12 h-12 mx-auto mb-4 text-gray-400" %>
-              <h3 class="text-lg font-semibold text-gray-700 mb-2">
-                <%= t(".no_assignments") %>
-              </h3>
-              <p class="text-gray-500 mb-4">
-                <%= t(".start_by_accepting", default: "Start by accepting a task above!") %>
+            <% end %>
+
+            <% if @my_assignments.count > 5 %>
+              <div class="text-center pt-4">
+                <%= link_to task_assignments_path, class: "button button__sm button__transparent-secondary" do %>
+                  <%= t(".view_all_assignments") %>
+                  <%= icon "arrow-right-line", class: "w-4 h-4 ml-2", role: "img" %>
+                <% end %>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="empty-state">
+              <%= icon "list-check", class: "empty-icon", role: "img" %>
+              <h3 class="empty-title"><%= t(".no_assignments") %></h3>
+              <p class="empty-description">
+                <%= t(".start_by_accepting", default: "Начните с принятия задания выше!") %>
               </p>
             </div>
-          </div>
-        <% end %>
+          <% end %>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Bottom Statistics Grid -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+  <div class="dashboard-grid mt-8">
+
     <!-- Referral Stats Section -->
-    <div class="card">
-      <div class="card__content">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-xl font-bold text-gray-900 flex items-center">
-            <%= icon "user-smile-line", class: "w-6 h-6 mr-3 text-primary" %>
-            <%= t(".referral_stats") %>
-          </h3>
-          <%= icon "share-line", class: "w-5 h-5 text-gray-400" %>
-        </div>
-        
-        <!-- Referral Stats Grid -->
-        <div class="grid grid-cols-2 gap-4 mb-6">
-          <div class="text-center p-4 bg-blue-50 rounded-lg">
-            <div class="text-2xl font-bold text-blue-600 mb-1">
-              <%= @referral_stats[:total_referrals] %>
-            </div>
-            <p class="text-sm text-blue-700 font-medium">
-              <%= t(".total_referrals") %>
-            </p>
+    <div class="dashboard-section">
+      <div class="card">
+        <div class="card__content p-6">
+          <div class="section-header mb-6">
+            <h3 class="text-xl font-bold flex items-center gap-3">
+              <%= icon "user-smile-line", class: "w-6 h-6 text-primary", role: "img" %>
+              <%= t(".referral_stats") %>
+            </h3>
+            <%= icon "share-line", class: "w-5 h-5 opacity-40", role: "img" %>
           </div>
-          
-          <div class="text-center p-4 bg-green-50 rounded-lg">
-            <div class="text-2xl font-bold text-green-600 mb-1">
-              <%= @referral_stats[:active_referrals] %>
+
+          <!-- Referral Stats Grid -->
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="text-center p-4 bg-secondary/5 rounded-lg border-2 border-secondary/20">
+              <div class="text-3xl font-bold text-secondary mb-1">
+                <%= @referral_stats[:total_referrals] %>
+              </div>
+              <p class="text-sm font-medium opacity-75">
+                <%= t(".total_referrals") %>
+              </p>
             </div>
-            <p class="text-sm text-green-700 font-medium">
-              <%= t(".active_referrals") %>
-            </p>
+
+            <div class="text-center p-4 bg-success/5 rounded-lg border-2 border-success/20">
+              <div class="text-3xl font-bold text-success mb-1">
+                <%= @referral_stats[:active_referrals] %>
+              </div>
+              <p class="text-sm font-medium opacity-75">
+                <%= t(".active_referrals") %>
+              </p>
+            </div>
           </div>
-        </div>
-        
-        <!-- Commission Earned -->
-        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
-          <div class="text-center">
-            <div class="flex items-center justify-center mb-2">
-              <%= icon "checkbox-circle-line", class: "w-6 h-6 mr-2 text-purple-600" %>
-              <span class="text-2xl font-bold text-purple-700">
-                <%= number_to_currency(@referral_stats[:total_commission], unit: "") %>
-              </span>
-              <span class="text-sm text-purple-600 ml-1"><%= t("decidim.volunteer_scheduler.common.tokens") %></span>
+
+          <!-- Commission Earned -->
+          <div class="referral-commission-badge">
+            <div class="text-center">
+              <div class="flex items-center justify-center gap-2 mb-2">
+                <%= icon "star-line", class: "w-6 h-6", role: "img" %>
+                <span class="commission-amount">
+                  <%= number_to_currency(@referral_stats[:total_commission], unit: "", precision: 0) %>
+                </span>
+                <span class="commission-label"><%= t("decidim.volunteer_scheduler.common.tokens") %></span>
+              </div>
+              <p class="text-sm font-medium">
+                <%= t(".total_commission_earned") %>
+              </p>
             </div>
-            <p class="text-sm text-purple-700 font-medium">
-              <%= t(".total_commission_earned") %>
-            </p>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Recent Activity Section -->
-    <div class="card">
-      <div class="card__content">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-xl font-bold text-gray-900 flex items-center">
-            <%= icon "timer-line", class: "w-6 h-6 mr-3 text-primary" %>
-            <%= t(".recent_activity") %>
-          </h3>
-          <%= icon "time-line", class: "w-5 h-5 text-gray-400" %>
-        </div>
-        
-        <div class="space-y-4">
-          <% if @recent_transactions.any? %>
-            <% @recent_transactions.each do |transaction| %>
-              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-150">
-                <div class="flex-1">
-                  <div class="flex items-center space-x-3">
-                    <div class="flex-shrink-0">
-                      <% if transaction.is_earning? %>
-                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                          <%= icon "arrow-up-line", class: "w-4 h-4 text-green-600" %>
-                        </div>
-                      <% else %>
-                        <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                          <%= icon "arrow-down-line", class: "w-4 h-4 text-red-600" %>
-                        </div>
-                      <% end %>
-                    </div>
-                    
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-gray-900 truncate">
-                        <%= transaction.description %>
-                      </p>
-                      <p class="text-xs text-gray-500">
-                        <%= l(transaction.created_at, format: :short) %>
-                      </p>
-                    </div>
+    <div class="dashboard-section">
+      <div class="card">
+        <div class="card__content p-6">
+          <div class="section-header mb-6">
+            <h3 class="text-xl font-bold flex items-center gap-3">
+              <%= icon "time-line", class: "w-6 h-6 text-primary", role: "img" %>
+              <%= t(".recent_activity") %>
+            </h3>
+            <%= icon "time-line", class: "w-5 h-5 opacity-40", role: "img" %>
+          </div>
+
+          <div class="activity-feed space-y-2">
+            <% if @recent_transactions.any? %>
+              <% @recent_transactions.each do |transaction| %>
+                <div class="activity-item">
+                  <div class="activity-icon-wrapper <%= transaction.is_earning? ? 'earning' : 'spending' %>">
+                    <%= icon(transaction.is_earning? ? "arrow-up-line" : "arrow-down-line", class: "w-5 h-5", role: "img") %>
                   </div>
-                </div>
-                
-                <div class="flex-shrink-0 ml-4">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= transaction.is_earning? ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+
+                  <div class="activity-content">
+                    <p class="activity-description"><%= transaction.description %></p>
+                    <p class="activity-timestamp"><%= l(transaction.created_at, format: :short) %></p>
+                  </div>
+
+                  <div class="activity-amount <%= transaction.is_earning? ? 'positive' : 'negative' %>">
                     <%= transaction.formatted_amount %>
                     <%= transaction.xp_amount ? t("decidim.volunteer_scheduler.common.xp") : t("decidim.volunteer_scheduler.common.tokens") %>
-                  </span>
+                  </div>
                 </div>
+              <% end %>
+            <% else %>
+              <div class="empty-state">
+                <%= icon "time-line", class: "empty-icon", role: "img" %>
+                <h4 class="empty-title"><%= t(".no_recent_activity") %></h4>
+                <p class="empty-description">
+                  <%= t(".activity_will_appear", default: "Ваша активность появится здесь") %>
+                </p>
               </div>
             <% end %>
-          <% else %>
-            <div class="text-center py-8">
-              <%= icon "timer-line", class: "w-12 h-12 mx-auto mb-4 text-gray-400" %>
-              <h4 class="text-lg font-semibold text-gray-700 mb-2">
-                <%= t(".no_recent_activity") %>
-              </h4>
-              <p class="text-gray-500">
-                <%= t(".activity_will_appear", default: "Your activity will appear here") %>
-              </p>
-            </div>
-          <% end %>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div> <!-- Close volunteer-dashboard -->
-
+</div>

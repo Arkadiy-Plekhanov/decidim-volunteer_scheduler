@@ -39,7 +39,7 @@ module Decidim
         @assignment = current_volunteer_profile.task_assignments.find(params[:task_assignment_id])
       rescue ActiveRecord::RecordNotFound
         flash[:alert] = I18n.t("task_assignments.not_found", scope: "decidim.volunteer_scheduler")
-        redirect_to dashboard_path
+        redirect_to root_path
       end
 
       def ensure_can_submit

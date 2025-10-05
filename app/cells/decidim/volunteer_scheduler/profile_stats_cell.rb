@@ -17,28 +17,28 @@ module Decidim
       def stats_data
         [
           {
-            icon: "checkbox-circle-line",
+            icon: "trophy-line",
             value: volunteer_profile.level,
             label: t(".level"),
-            color: level_color
+            secondary: level_name
           },
           {
-            icon: "check-double-line", 
-            value: volunteer_profile.total_xp,
+            icon: "star-line",
+            value: number_with_delimiter(volunteer_profile.total_xp),
             label: t(".total_xp"),
-            color: "text-success"
+            secondary: xp_to_next_level_text
           },
           {
             icon: "user-smile-line",
             value: referral_count,
             label: t(".referrals"),
-            color: "text-primary"
+            secondary: t(".active_referrals")
           },
           {
-            icon: "bubble-chart-line",
+            icon: "dashboard-line",
             value: "#{volunteer_profile.activity_multiplier.round(2)}x",
             label: t(".multiplier"),
-            color: "text-info"
+            secondary: multiplier_status
           }
         ]
       end
@@ -79,6 +79,37 @@ module Decidim
       def referral_url(profile)
         # Use Decidim's organization-aware URL generation
         decidim.root_url(host: current_organization.host, ref: profile.referral_code)
+      end
+
+      def level_name
+        case volunteer_profile.level
+        when 1
+          t(".beginner")
+        when 2
+          t(".intermediate")
+        when 3
+          t(".advanced")
+        else
+          t(".expert")
+        end
+      end
+
+      def xp_to_next_level_text
+        xp_needed = next_level_xp_needed
+        return t(".max_level") if xp_needed.nil? || xp_needed <= 0
+
+        t(".xp_to_next", xp: number_with_delimiter(xp_needed))
+      end
+
+      def multiplier_status
+        multiplier = volunteer_profile.activity_multiplier
+        if multiplier >= 2.0
+          t(".high_activity")
+        elsif multiplier >= 1.5
+          t(".active")
+        else
+          t(".normal_activity")
+        end
       end
     end
   end
