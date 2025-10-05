@@ -37,8 +37,8 @@ module Decidim
         )
         
         if @task_assignment.save
-          redirect_to task_assignment_path(@task_assignment), 
-                     notice: "Task accepted successfully!"
+          redirect_to task_assignment_path(@task_assignment),
+                     notice: I18n.t("decidim.volunteer_scheduler.task_assignments.create.success")
         else
           redirect_with_error(@task_assignment.errors.full_messages.first)
         end

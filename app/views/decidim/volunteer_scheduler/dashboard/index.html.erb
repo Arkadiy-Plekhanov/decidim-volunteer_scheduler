@@ -165,9 +165,9 @@
             <div class="flex items-center justify-center mb-2">
               <%= icon "checkbox-circle-line", class: "w-6 h-6 mr-2 text-purple-600" %>
               <span class="text-2xl font-bold text-purple-700">
-                <%= number_to_currency(@referral_stats[:total_commission], unit: "") %> 
+                <%= number_to_currency(@referral_stats[:total_commission], unit: "") %>
               </span>
-              <span class="text-sm text-purple-600 ml-1">tokens</span>
+              <span class="text-sm text-purple-600 ml-1"><%= t("decidim.volunteer_scheduler.common.tokens") %></span>
             </div>
             <p class="text-sm text-purple-700 font-medium">
               <%= t(".total_commission_earned") %>
@@ -219,8 +219,8 @@
                 
                 <div class="flex-shrink-0 ml-4">
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= transaction.is_earning? ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
-                    <%= transaction.formatted_amount %> 
-                    <%= transaction.xp_amount ? "XP" : "tokens" %>
+                    <%= transaction.formatted_amount %>
+                    <%= transaction.xp_amount ? t("decidim.volunteer_scheduler.common.xp") : t("decidim.volunteer_scheduler.common.tokens") %>
                   </span>
                 </div>
               </div>

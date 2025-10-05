@@ -70,16 +70,10 @@ module Decidim
       end
 
       def current_level_xp
-        case volunteer_profile.level
-        when 1
-          volunteer_profile.total_xp
-        when 2
-          volunteer_profile.total_xp - 100
-        when 3
-          volunteer_profile.total_xp - 500
-        else
-          0
-        end
+        thresholds = volunteer_profile.level_thresholds
+        current_threshold = volunteer_profile.level > 1 ? thresholds[volunteer_profile.level - 2] : 0
+
+        volunteer_profile.total_xp - current_threshold
       end
 
       def referral_url(profile)

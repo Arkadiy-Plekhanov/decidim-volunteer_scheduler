@@ -44,7 +44,7 @@ module Decidim
           transaction_type: :task_completion,
           amount: xp_amount,
           xp_amount: xp_amount,
-          description: "Task completed: #{task_title}"
+          description: I18n.t("decidim.volunteer_scheduler.transactions.task_completed", task: task_title, default: "Task completed: #{task_title}")
         )
       end
 
@@ -54,7 +54,7 @@ module Decidim
           transaction_type: :referral_commission,
           amount: commission_amount,
           commission_amount: commission_amount,
-          description: "Level #{level} referral commission from #{referred_name}"
+          description: I18n.t("decidim.volunteer_scheduler.transactions.referral_commission", level: level, name: referred_name, default: "Level #{level} referral commission from #{referred_name}")
         )
       end
 

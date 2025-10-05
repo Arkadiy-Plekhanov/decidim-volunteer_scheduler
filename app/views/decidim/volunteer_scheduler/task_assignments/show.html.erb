@@ -17,9 +17,9 @@
         </div>
         
         <div class="task-metadata">
-          <p><strong><%= t(".xp_reward") %>:</strong> <%= @task_assignment.task_template.xp_reward %> XP</p>
-          <p><strong><%= t(".level_required") %>:</strong> Level <%= @task_assignment.task_template.level_required %></p>
-          <p><strong><%= t(".category") %>:</strong> <%= @task_assignment.task_template.category %></p>
+          <p><strong><%= t(".reward") %>:</strong> <%= @task_assignment.task_template.xp_reward %> <%= t("decidim.volunteer_scheduler.common.xp") %></p>
+          <p><strong><%= t(".level_required") %>:</strong> <%= t("decidim.volunteer_scheduler.common.level_number", level: @task_assignment.task_template.level_required) %></p>
+          <p><strong><%= t(".category") %>:</strong> <%= t("decidim.volunteer_scheduler.categories.#{@task_assignment.task_template.category}", default: @task_assignment.task_template.category) %></p>
           <p><strong><%= t(".assigned_at") %>:</strong> <%= l(@task_assignment.assigned_at, format: :long) %></p>
           <% if @task_assignment.due_date %>
             <p><strong><%= t(".due_date") %>:</strong> 
@@ -85,7 +85,7 @@
         <% elsif @task_assignment.approved? %>
           <div class="callout success">
             <%= t(".task_approved") %>
-            <p><strong><%= t(".xp_earned") %>:</strong> <%= @task_assignment.task_template.xp_reward %> XP</p>
+            <p><strong><%= t(".xp_earned") %>:</strong> <%= @task_assignment.task_template.xp_reward %> <%= t("decidim.volunteer_scheduler.common.xp") %></p>
           </div>
         <% elsif @task_assignment.rejected? %>
           <div class="callout alert">

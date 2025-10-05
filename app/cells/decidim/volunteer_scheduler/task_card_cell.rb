@@ -17,8 +17,18 @@ module Decidim
       def can_accept?
         return false unless current_user&.confirmed?
         return false unless current_volunteer_profile
-        
+
         task_template.can_be_assigned_to?(current_volunteer_profile)
+      end
+
+      def already_accepted?
+        return false unless current_volunteer_profile
+
+        # Check if user already has an active assignment for this task
+        current_volunteer_profile.task_assignments
+                                 .where(task_template: task_template)
+                                 .where.not(status: [:rejected, :completed])
+                                 .exists?
       end
 
       def current_volunteer_profile
@@ -71,15 +81,16 @@ module Decidim
 
       def estimated_time
         # Estimate based on XP reward and level
+        min_abbr = I18n.t("decidim.volunteer_scheduler.common.minutes")
         case task_template.level_required
         when 1
-          "5-10 min"
+          "5-10 #{min_abbr}"
         when 2
-          "15-30 min"
+          "15-30 #{min_abbr}"
         when 3
-          "30-60 min"
+          "30-60 #{min_abbr}"
         else
-          "Unknown"
+          I18n.t("decidim.volunteer_scheduler.task_card.unknown", default: "Unknown")
         end
       end
     end

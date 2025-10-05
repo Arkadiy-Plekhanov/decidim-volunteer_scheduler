@@ -44,6 +44,11 @@ module Decidim
       initializer "decidim_volunteer_scheduler.assets" do |app|
         app.config.assets.precompile += %w[decidim_volunteer_scheduler_manifest.js] if app.config.respond_to?(:assets)
       end
+
+      initializer "decidim_volunteer_scheduler.locales" do |app|
+        # Add locales path for internationalization
+        app.config.i18n.load_path += Dir[Decidim::VolunteerScheduler::Engine.root.join("config", "locales", "**", "*.yml")]
+      end
       
 
       initializer "decidim_volunteer_scheduler.add_cells_view_paths", after: "decidim.init" do |app|

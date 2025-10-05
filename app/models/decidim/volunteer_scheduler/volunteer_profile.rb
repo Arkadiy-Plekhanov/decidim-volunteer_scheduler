@@ -61,9 +61,11 @@ module Decidim
 
       def next_level_xp
         thresholds = level_thresholds
-        return nil if level >= thresholds.length
-        
-        thresholds[level] - total_xp
+        return nil if level > thresholds.length
+
+        next_threshold = thresholds[level - 1]
+        remaining = next_threshold - total_xp
+        [remaining, 0].max
       end
 
       def level_progress_percentage

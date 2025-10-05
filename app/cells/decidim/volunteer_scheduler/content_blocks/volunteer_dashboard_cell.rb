@@ -81,8 +81,8 @@ module Decidim
           achievements += level_up_transactions.map do |transaction|
             {
               type: 'level_up',
-              title: "Level Up Achievement!",
-              description: "Reached Level #{current_volunteer_profile.level}",
+              title: I18n.t("decidim.volunteer_scheduler.achievements.level_up"),
+              description: I18n.t("decidim.volunteer_scheduler.achievements.reached_level", level: current_volunteer_profile.level),
               date: transaction.created_at,
               icon: 'trophy-line'
             }
@@ -99,7 +99,7 @@ module Decidim
           achievements += recent_completed.map do |assignment|
             {
               type: 'task_completed',
-              title: "Task Completed",
+              title: I18n.t("decidim.volunteer_scheduler.achievements.task_completed"),
               description: assignment.task_template.title,
               date: assignment.reviewed_at,
               icon: 'check-line'

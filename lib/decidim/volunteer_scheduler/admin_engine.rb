@@ -33,6 +33,11 @@ module Decidim
         app.config.assets.precompile += %w[decidim_volunteer_scheduler_admin_manifest.js] if app.config.respond_to?(:assets)
       end
 
+      initializer "decidim_volunteer_scheduler.admin_locales" do |app|
+        # Add locales path for internationalization
+        app.config.i18n.load_path += Dir[Decidim::VolunteerScheduler::Engine.root.join("config", "locales", "**", "*.yml")]
+      end
+
       initializer "decidim_volunteer_scheduler_admin.mount_routes" do |_app|
         Decidim::Core::Engine.routes do
           mount Decidim::VolunteerScheduler::AdminEngine, at: "/admin/volunteer_scheduler", as: "decidim_admin_volunteer_scheduler"
