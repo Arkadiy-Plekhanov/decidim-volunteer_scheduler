@@ -152,6 +152,13 @@ en:
           approved: Approved
           completed: Completed
           rejected: Rejected
+        create:
+          success: "Task accepted successfully!"
+          no_profile: "Volunteer profile not found. Please create a profile first."
+          no_template: "Task not found."
+          insufficient_level: "You need level %{required} to accept this task. Your current level is %{current}."
+          already_assigned: "You already have an active assignment for '%{task}' (Status: %{status}). Please complete or cancel it before accepting a new one."
+          daily_limit_reached: "You have reached the daily task limit of %{limit} assignments. Please try again tomorrow."
         accept: Accept Task
         accept_confirm: "Are you sure you want to accept this task?"
         cannot_accept: "You cannot accept this task at this time."
@@ -216,6 +223,20 @@ en:
           resubmit: "Resubmit"
           your_submission: "Your Submission"
           submitted_on: "Submitted on: %{date}"
+          hours_worked: "Hours Worked"
+          hours: "h"
+          challenges_faced: "Challenges Faced"
+          challenges_faced_placeholder: "Describe any challenges you encountered..."
+          challenges_faced_help: "Optional - share difficulties to improve the process"
+          completion_notes_help: "Minimum 10 characters - describe the work completed"
+          hours_worked_help: "How many hours did you spend on this assignment"
+          attachments: "Attachments"
+          attachments_help: "Maximum 5 files. Supported: images, PDF, documents (up to 10 MB each)"
+          submitting: "Submitting..."
+          download: "Download"
+        submit:
+          success: "Assignment successfully submitted for review!"
+          error: "Error submitting assignment. Please check the form and try again."
         index:
           title: "My Task Assignments"
           no_assignments: "You have no task assignments yet."

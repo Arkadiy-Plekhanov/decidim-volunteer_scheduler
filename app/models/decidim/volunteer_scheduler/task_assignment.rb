@@ -14,6 +14,13 @@ module Decidim
       belongs_to :assignee, class_name: "Decidim::VolunteerScheduler::VolunteerProfile"
       belongs_to :reviewer, class_name: "Decidim::User", optional: true
 
+      # Use Decidim's native attachment system for task submission files
+      has_many :attachments,
+               as: :attached_to,
+               class_name: "Decidim::Attachment",
+               dependent: :destroy,
+               inverse_of: :attached_to
+
       validates :status, presence: true
       validates :assigned_at, presence: true
 
@@ -51,26 +58,43 @@ module Decidim
       end
 
       def latest_submission
-        submission_data if submitted_at.present?
+        {
+          notes: submission_notes,
+          submitted_at: submitted_at,
+          attachments: attachments,
+          data: submission_data
+        }
       end
-      
+
       def submit_work!(submission_params = {})
         return false unless can_be_submitted?
-        
+
         transaction do
-          # Store submission data
+          # Update assignment with submission data
           self.submitted_at = Time.current
-          self.submission_notes = submission_params[:notes]
+          self.submission_notes = submission_params[:notes] || submission_params[:submission_notes]
           self.submission_data = {
             hours_worked: submission_params[:hours_worked],
             challenges_faced: submission_params[:challenges_faced],
-            attachments: submission_params[:attachments] || [],
             submitted_at: Time.current.iso8601
           }
           self.status = :submitted
-          
+
           save!
+
+          # Attachments will be handled by the controller using Decidim::Attachment
+          self
         end
+      end
+
+      # Method to define attachment context for Decidim::Attachment
+      def attachment_context
+        :participant
+      end
+
+      # Organization for attachment validation
+      def organization
+        task_template.organization
       end
 
       def approve!(reviewer_user, review_notes = nil)

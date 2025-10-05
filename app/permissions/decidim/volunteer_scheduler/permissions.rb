@@ -32,7 +32,7 @@ module Decidim
           permission_action.allow! if can_read_task_assignment?
         when :create
           permission_action.allow! if can_create_task_assignment?
-        when :update
+        when :update, :submit
           permission_action.allow! if can_update_task_assignment?
         end
       end
