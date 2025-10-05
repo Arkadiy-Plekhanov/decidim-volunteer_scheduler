@@ -33,6 +33,12 @@ module Decidim
         
         get "my_dashboard", to: "dashboard#index"
 
+        # Webhook endpoints
+        namespace :webhooks do
+          post 'scicent_sale', to: 'webhooks#scicent_sale'
+          get 'health', to: 'webhooks#health'
+        end
+
       end
 
       initializer "decidim_volunteer_scheduler.assets" do |app|
@@ -40,9 +46,9 @@ module Decidim
       end
       
 
-      initializer "decidim_volunteer_scheduler.add_cells_view_paths" do
-        Cell::ViewModel.view_paths << File.expand_path("#{Decidim::VolunteerScheduler::Engine.root}/app/cells")
-        Cell::ViewModel.view_paths << File.expand_path("#{Decidim::VolunteerScheduler::Engine.root}/app/views")
+      initializer "decidim_volunteer_scheduler.add_cells_view_paths", after: "decidim.init" do |app|
+        Cell::ViewModel.view_paths.unshift(File.expand_path("app/cells", root))
+        Cell::ViewModel.view_paths.unshift(File.expand_path("app/views", root))
       end
 
       # Menu registration disabled temporarily - will be added properly per component
@@ -79,19 +85,20 @@ module Decidim
         # EventsManager not available yet, skip
       end
 
-      # Register icons
+      # Register icons (only register custom icons, skip those already in Decidim Core)
       initializer "decidim_volunteer_scheduler.register_icons", after: "decidim_core.register_icons" do
         Decidim.icons.register(name: "user-heart-line", icon: "user-heart-line", category: "system", description: "Volunteer user icon", engine: :volunteer_scheduler)
         Decidim.icons.register(name: "user-check-line", icon: "user-check-line", category: "system", description: "Task review icon", engine: :volunteer_scheduler)
-        Decidim.icons.register(name: "list-check", icon: "list-check", category: "system", description: "Task list icon", engine: :volunteer_scheduler)
+        # Skip list-check, dashboard-line, check-line - already registered by Decidim Core
+        Decidim.icons.register(name: "task-line", icon: "task-line", category: "system", description: "Task icon", engine: :volunteer_scheduler)
+        Decidim.icons.register(name: "trophy-line", icon: "trophy-line", category: "system", description: "Achievement icon", engine: :volunteer_scheduler)
       end
 
       # Register content blocks
       initializer "decidim_volunteer_scheduler.homepage_content_blocks" do
-        Decidim.content_blocks.register(:homepage, :volunteer_scheduler) do |content_block|
-          content_block.cell = "decidim/volunteer_scheduler/content_blocks/volunteer_scheduler_block"
-          content_block.public_name_key = "decidim.volunteer_scheduler.content_blocks.volunteer_scheduler.name"
-          content_block.default!
+        Decidim.content_blocks.register(:homepage, :volunteer_dashboard) do |content_block|
+          content_block.cell = "decidim/volunteer_scheduler/content_blocks/volunteer_dashboard"
+          content_block.public_name_key = "decidim.content_blocks.volunteer_dashboard.name"
         end
       end
 

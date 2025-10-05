@@ -32,6 +32,22 @@ en:
           step:
             task_assignment_enabled: Task assignment enabled
             task_submission_enabled: Task submission enabled
+    content_blocks:
+      volunteer_dashboard:
+        name: "Volunteer Dashboard"
+        title: "Volunteer Dashboard"
+        level: "Level"
+        total_xp: "Total XP"
+        multiplier: "Multiplier"
+        referrals: "Referrals"
+        total: "Total"
+        active: "Active"
+        recent_activity: "Recent Activity"
+        view_full_dashboard: "View Full Dashboard"
+        my_tasks: "My Tasks"
+        become_volunteer: "Become a Volunteer"
+        become_volunteer_description: "Join our community and start making a difference!"
+        join_now: "Join Now"
     volunteer_scheduler:
       menu:
         volunteer_dashboard: My Volunteer Dashboard
@@ -60,8 +76,6 @@ en:
           total_commission_earned: "Commission Earned"
           recent_activity: "Recent Activity"
           no_recent_activity: "No recent activity to display."
-          check_back_later: "Check back later for new opportunities!"
-          start_by_accepting: "Start by accepting a task above!"
           activity_will_appear: "Your activity will appear here"
         level: "Level %{level}"
         xp_to_next_level: "%{xp} XP to next level"

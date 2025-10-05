@@ -1,0 +1,193 @@
+<div class="volunteer-dashboard-block">
+  <div class="card">
+    <div class="card-divider">
+      <h3 class="card-title">
+        <%= icon "user-heart-line", class: "icon--small" %>
+        <%= t("decidim.content_blocks.volunteer_dashboard.title", default: "Volunteer Dashboard") %>
+      </h3>
+    </div>
+    
+    <div class="card-section">
+      <!-- Profile Stats Row -->
+      <% if current_user.blank? %>
+        <!-- Not logged in -->
+        <div class="callout primary text-center">
+          <h4><%= t("decidim.content_blocks.volunteer_dashboard.become_volunteer") %></h4>
+          <p><%= t("decidim.content_blocks.volunteer_dashboard.become_volunteer_description") %></p>
+          <%= link_to "/users/sign_up", class: "button button--highlight" do %>
+            <%= icon "user-add-line", class: "icon--small" %>
+            <%= t("decidim.content_blocks.volunteer_dashboard.join_now") %>
+          <% end %>
+        </div>
+      <% elsif current_volunteer_profile %>
+        <!-- Enhanced volunteer stats -->
+        <div class="row">
+          <div class="columns medium-4">
+            <div class="callout primary text-center">
+              <h4><%= t("decidim.content_blocks.volunteer_dashboard.level") %> <%= volunteer_stats[:level] %></h4>
+              <p><strong><%= volunteer_stats[:total_xp] %></strong> <%= t("decidim.content_blocks.volunteer_dashboard.total_xp") %></p>
+              <% if volunteer_stats[:xp_to_next_level] && volunteer_stats[:xp_to_next_level] > 0 %>
+                <small><%= volunteer_stats[:xp_to_next_level] %> XP to next level</small>
+              <% end %>
+              <% if volunteer_stats[:activity_multiplier] > 1.0 %>
+                <span class="label success">
+                  <%= number_with_precision(volunteer_stats[:activity_multiplier], precision: 2) %>x <%= t("decidim.content_blocks.volunteer_dashboard.multiplier") %>
+                </span>
+              <% end %>
+            </div>
+          </div>
+          
+          <div class="columns medium-4">
+            <div class="callout secondary text-center">
+              <h4><%= t("decidim.content_blocks.volunteer_dashboard.referrals") %></h4>
+              <p><strong><%= referral_stats[:total_referrals] %></strong> <%= t("decidim.content_blocks.volunteer_dashboard.total") %></p>
+              <p><strong><%= referral_stats[:active_referrals] %></strong> <%= t("decidim.content_blocks.volunteer_dashboard.active") %></p>
+              <% if referral_stats[:this_month_earnings] > 0 %>
+                <small class="success">+<%= referral_stats[:this_month_earnings] %> tokens this month</small>
+              <% end %>
+            </div>
+          </div>
+          
+          <div class="columns medium-4">
+            <div class="callout warning text-center">
+              <h4>Progress</h4>
+              <p><strong><%= volunteer_stats[:total_tasks_completed] %></strong> tasks completed</p>
+              <% if volunteer_stats[:rank_in_organization] %>
+                <p>Rank #<strong><%= volunteer_stats[:rank_in_organization] %></strong> in organization</p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="text-center">
+          <%= link_to decidim_volunteer_scheduler.my_dashboard_path, 
+                     class: "button button--highlight" do %>
+            <%= icon "dashboard-line", class: "icon--small" %>
+            <%= t("decidim.content_blocks.volunteer_dashboard.view_full_dashboard") %>
+          <% end %>
+          
+          <%= link_to decidim_volunteer_scheduler.task_assignments_path, 
+                     class: "button hollow" do %>
+            <%= icon "task-line", class: "icon--small" %>
+            <%= t("decidim.content_blocks.volunteer_dashboard.my_tasks") %>
+          <% end %>
+        </div>
+        
+        <!-- Available Tasks Preview -->
+        <% if available_tasks.any? %>
+          <div class="margin-top-2">
+            <h5>Available Tasks</h5>
+            <div class="row small-up-1 medium-up-2">
+              <% available_tasks.first(2).each do |task| %>
+                <div class="column">
+                  <div class="card card--small">
+                    <div class="card-section">
+                      <h6><%= truncate(task.title, length: 30) %></h6>
+                      <p class="text-sm"><strong><%= task.xp_reward %> XP</strong> • Level <%= task.level_required %>+</p>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+        
+        <!-- Recent Achievements -->
+        <% if recent_achievements.any? %>
+          <div class="margin-top-2">
+            <h5>Recent Achievements</h5>
+            <% recent_achievements.first(3).each do |achievement| %>
+              <div class="flex justify-between items-center py-1 text-sm">
+                <div class="flex items-center">
+                  <%= icon achievement[:icon], class: "icon--small margin-right-1" %>
+                  <span><%= achievement[:title] %></span>
+                </div>
+                <span class="text-success"><%= time_ago_in_words(achievement[:date]) %> ago</span>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+        
+        <!-- Recent Activity -->
+        <% if recent_transactions.any? %>
+          <div class="margin-top-2">
+            <h5><%= t("decidim.content_blocks.volunteer_dashboard.recent_activity") %></h5>
+            <% recent_transactions.first(2).each do |transaction| %>
+              <div class="flex justify-between items-center py-1 text-sm">
+                <span><%= truncate(transaction.description, length: 30) %></span>
+                <span class="<%= transaction.is_earning? ? 'text-success' : 'text-alert' %>">
+                  <%= transaction.formatted_amount %> 
+                  <%= transaction.xp_amount ? "XP" : "tokens" %>
+                </span>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+        
+      <% else %>
+        <!-- Not yet a volunteer -->
+        <div class="callout warning text-center">
+          <h4><%= t("decidim.content_blocks.volunteer_dashboard.become_volunteer") %></h4>
+          <p><%= t("decidim.content_blocks.volunteer_dashboard.become_volunteer_description") %></p>
+          <%= link_to decidim_volunteer_scheduler.my_dashboard_path, 
+                     class: "button button--highlight" do %>
+            <%= icon "user-add-line", class: "icon--small" %>
+            <%= t("decidim.content_blocks.volunteer_dashboard.join_now") %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+.volunteer-dashboard-block .flex {
+  display: flex;
+}
+.volunteer-dashboard-block .justify-between {
+  justify-content: space-between;
+}
+.volunteer-dashboard-block .items-center {
+  align-items: center;
+}
+.volunteer-dashboard-block .py-1 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.volunteer-dashboard-block .text-sm {
+  font-size: 0.875rem;
+}
+.volunteer-dashboard-block .text-success {
+  color: #22c55e;
+}
+.volunteer-dashboard-block .text-alert {
+  color: #ef4444;
+}
+.volunteer-dashboard-block .margin-top-2 {
+  margin-top: 2rem;
+}
+.volunteer-dashboard-block .margin-right-1 {
+  margin-right: 0.5rem;
+}
+.volunteer-dashboard-block .card--small {
+  border: 1px solid #e6e6e6;
+  border-radius: 4px;
+}
+.volunteer-dashboard-block .card--small .card-section {
+  padding: 0.75rem;
+}
+.volunteer-dashboard-block h5 {
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+.volunteer-dashboard-block h6 {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+.volunteer-dashboard-block .success {
+  color: #22c55e;
+  font-size: 0.8rem;
+}
+</style>
